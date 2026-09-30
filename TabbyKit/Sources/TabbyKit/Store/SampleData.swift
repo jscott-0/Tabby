@@ -63,6 +63,30 @@ public enum SampleData {
               bio: "", tags: [], note: "Profile was behind the login wall", daysAgo: 60, status: .failed),
     ]
 
+    /// Extra people for demo mode, so it feels like a Tabby after a few weeks of use (~30 people).
+    static let demoExtras: [Entry] = [
+        Entry(name: "Beatrix Holm", platform: .instagram, handle: "tabby_sample_beatrix", headline: "",
+              bio: "Type designer. Custom lettering.", tags: ["designer", "branding"], note: "Logo lettering for the relaunch", daysAgo: 4),
+        Entry(name: "Kwame Asante", platform: .linkedin, handle: "tabby-sample-kwame", headline: "Hardware PM · Sparrow Devices",
+              bio: "", tags: ["hardware", "founder", "boston"], note: "Intro via Ines", daysAgo: 6),
+        Entry(name: "Luz Moreno", platform: .tiktok, handle: "tabby_sample_luz", headline: "",
+              bio: "one-pan dinners in 15 min", tags: ["food"], note: "Recipe collab idea", daysAgo: 7),
+        Entry(name: "Petra Novak", platform: .instagram, handle: "tabby_sample_petra", headline: "",
+              bio: "Mobility + yoga for desk workers", tags: ["fitness"], note: "", daysAgo: 10),
+        Entry(name: "Yusuf Demir", platform: .tiktok, handle: "tabby_sample_yusuf", headline: "",
+              bio: "soldering, synths, small robots", tags: ["hardware", "maker"], note: "", daysAgo: 11),
+        Entry(name: "Grace Whitfield", platform: .linkedin, handle: "tabby-sample-grace", headline: "Design Director · Harbor & Co",
+              bio: "", tags: ["designer", "cambridge"], note: "Portfolio review offer", daysAgo: 13),
+        Entry(name: "Mateo Rossi", platform: .instagram, handle: "tabby_sample_mateo", headline: "",
+              bio: "Leatherwork. Wallets, bags, belts.", tags: ["maker"], note: "", daysAgo: 18),
+        Entry(name: "Sunita Rao", platform: .linkedin, handle: "tabby-sample-sunita", headline: "Founder · Kettle & Crumb",
+              bio: "", tags: ["founder", "food", "boston"], note: "Stocks local makers", daysAgo: 22),
+        Entry(name: "Elena Popescu", platform: .tiktok, handle: "tabby_sample_elena", headline: "",
+              bio: "product photography tips", tags: ["photography"], note: "", daysAgo: 30),
+        Entry(name: "Theo Lang", platform: .instagram, handle: "tabby_sample_theo", headline: "",
+              bio: "Climbing coach · bouldering", tags: ["fitness"], note: "", daysAgo: 35),
+    ]
+
     static let spaces: [(draft: SpaceDraft, tags: [String], pinned: Bool)] = [
         (SampleData.space("Hardware designers", icon: "cpu", color: 0, matchAll: true), ["designer", "hardware"], true),
         (SampleData.space("Boston", icon: "building.2.fill", color: 3, matchAll: false), ["boston", "cambridge"], false),
@@ -81,9 +105,9 @@ public enum SampleData {
         return draft
     }
 
-    public static func seed(into context: ModelContext, now: Date = .now) {
+    public static func seed(into context: ModelContext, now: Date = .now, includeDemoExtras: Bool = false) {
         let store = TabbyStore(context: context)
-        for entry in entries {
+        for entry in entries + (includeDemoExtras ? demoExtras : []) {
             let date = now.addingTimeInterval(-Double(entry.daysAgo) * 86_400)
             var draft = PersonDraft(
                 platform: entry.platform,
@@ -111,6 +135,13 @@ public enum SampleData {
     public nonisolated static func isSampleHandle(_ handle: String) -> Bool {
         let lowered = handle.lowercased()
         return lowered.hasPrefix("tabby_sample") || lowered.hasPrefix("tabby-sample")
+    }
+
+    /// Demo mode's store: in memory, so nothing touches the real one.
+    public static func demoContainer() -> ModelContainer {
+        let container = try! TabbyContainer.make(inMemory: true)
+        seed(into: container.mainContext, includeDemoExtras: true)
+        return container
     }
 
     /// An in-memory container seeded with the sample data, for previews.

@@ -7,6 +7,7 @@ public struct PersonFacts {
     public let platforms: Set<Platform>
     public let createdAt: Date
     public let needsInfo: Bool
+    public let isLockedDraft: Bool
 
     public init(_ person: Person) {
         self.person = person
@@ -14,6 +15,7 @@ public struct PersonFacts {
         self.platforms = Set((person.accounts ?? []).map(\.platform))
         self.createdAt = person.createdAt
         self.needsInfo = person.needsInfo
+        self.isLockedDraft = person.isLockedDraft
     }
 }
 
@@ -39,14 +41,15 @@ public struct SpaceRule: Equatable, Sendable {
         return matchAll ? tagIDs.isSubset(of: personTags) : !tagIDs.isDisjoint(with: personTags)
     }
 
+    /// Locked drafts never match; they only show in Waiting to unlock.
     public func matches(_ facts: PersonFacts) -> Bool {
-        matches(tagIDs: facts.tagIDs, platforms: facts.platforms)
+        !facts.isLockedDraft && matches(tagIDs: facts.tagIDs, platforms: facts.platforms)
     }
 }
 
 /// Spaces every user has, listed before their own.
 public enum BuiltInSpace: String, CaseIterable, Hashable, Identifiable, Sendable {
-    case all, recentlyAdded, untagged, needsInfo
+    case all, recentlyAdded, untagged, needsInfo, waitingToUnlock
 
     public var id: String { rawValue }
 
@@ -59,6 +62,7 @@ public enum BuiltInSpace: String, CaseIterable, Hashable, Identifiable, Sendable
         case .recentlyAdded: "Recently added"
         case .untagged: "Untagged"
         case .needsInfo: "Needs info"
+        case .waitingToUnlock: "Waiting to unlock"
         }
     }
 
@@ -69,6 +73,7 @@ public enum BuiltInSpace: String, CaseIterable, Hashable, Identifiable, Sendable
         case .recentlyAdded: "clock.fill"
         case .untagged: "tag.slash.fill"
         case .needsInfo: "exclamationmark.circle.fill"
+        case .waitingToUnlock: "lock.fill"
         }
     }
 
@@ -78,15 +83,20 @@ public enum BuiltInSpace: String, CaseIterable, Hashable, Identifiable, Sendable
         case .recentlyAdded: "Nobody added in the last 30 days."
         case .untagged: "Everyone has at least one tag."
         case .needsInfo: "Every saved profile has its details."
+        case .waitingToUnlock: "No drafts waiting."
         }
     }
 
+    /// Locked drafts only show in Waiting to unlock.
     public func contains(_ facts: PersonFacts, now: Date = .now) -> Bool {
+        if self == .waitingToUnlock { return facts.isLockedDraft }
+        guard !facts.isLockedDraft else { return false }
         switch self {
-        case .all: true
-        case .recentlyAdded: now.timeIntervalSince(facts.createdAt) <= Self.recentWindow
-        case .untagged: facts.tagIDs.isEmpty
-        case .needsInfo: facts.needsInfo
+        case .waitingToUnlock: return false
+        case .all: return true
+        case .recentlyAdded: return now.timeIntervalSince(facts.createdAt) <= Self.recentWindow
+        case .untagged: return facts.tagIDs.isEmpty
+        case .needsInfo: return facts.needsInfo
         }
     }
 }

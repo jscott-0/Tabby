@@ -14,6 +14,8 @@ struct AddPersonView: View {
     @State private var existing: Person?
     @State private var isImporting = false
     @State private var saveError: String?
+    @Environment(\.entitlement) private var entitlement
+    @Environment(\.showPaywall) private var showPaywall
 
     private var store: TabbyStore { TabbyStore(context: context) }
 
@@ -51,6 +53,9 @@ struct AddPersonView: View {
                         if existing != nil {
                             Label("Already in Tabby. Saving updates them.", systemImage: "checkmark.circle.fill")
                                 .foregroundStyle(.green)
+                        } else if willLock {
+                            Label("You've used your free Tab. This saves as a draft until you unlock Tabby.", systemImage: "lock.fill")
+                                .foregroundStyle(.orange)
                         }
                     }
                     Section("Details") {
@@ -78,7 +83,7 @@ struct AddPersonView: View {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save)
+                    Button(willLock ? "Save draft" : "Save", action: save)
                         .disabled(draft == nil)
                 }
             }
@@ -90,6 +95,11 @@ struct AddPersonView: View {
                 Text(saveError ?? "")
             }
         }
+    }
+
+    private var willLock: Bool {
+        guard let draft else { return false }
+        return store.wouldLock(draft, entitlement: entitlement)
     }
 
     private var hint: String? {
@@ -157,8 +167,16 @@ struct AddPersonView: View {
     private func save() {
         guard let draft else { return }
         do {
-            try store.save(draft)
+            let outcome = try store.save(draft, entitlement: entitlement)
             dismiss()
+            if outcome.isLockedDraft {
+                // After this sheet is gone; two sheets can't present at once.
+                let showPaywall = showPaywall
+                Task {
+                    try? await Task.sleep(for: .milliseconds(600))
+                    showPaywall(.slotLimit)
+                }
+            }
         } catch {
             saveError = error.localizedDescription
         }

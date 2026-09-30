@@ -18,6 +18,8 @@ public final class Person {
     public var lastViewedAt: Date?
     /// Folded name, handles, headlines, bios, note and tag names. Maintained by `TabbyStore`.
     public var searchText: String = ""
+    /// Saved past the free limit: kept (with its tags and note) until a purchase unlocks it.
+    public var isLockedDraft: Bool = false
 
     @Relationship(deleteRule: .cascade, inverse: \Account.person)
     public var accounts: [Account]? = []

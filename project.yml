@@ -15,6 +15,8 @@ settings:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     CODE_SIGN_STYLE: Automatic
+fileGroups:
+  - Config
 packages:
   TabbyKit:
     path: TabbyKit
@@ -34,6 +36,7 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         TabbyAppGroup: $(TABBY_APP_GROUP)
+        TabbyWebCheckoutURL: $(TABBY_WEB_CHECKOUT_URL)
         CFBundleURLTypes:
           - CFBundleURLName: $(PRODUCT_BUNDLE_IDENTIFIER)
             CFBundleURLSchemes: [tabby]
@@ -41,6 +44,7 @@ targets:
       path: Tabby/Tabby.entitlements
       properties:
         com.apple.security.application-groups: [$(TABBY_APP_GROUP)]
+        com.apple.developer.applesignin: [Default]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(TABBY_BUNDLE_ID)
@@ -92,6 +96,8 @@ schemes:
         TabbyShare: all
     run:
       config: Debug
+      # Placeholder products and prices for local purchases; see docs/DEVICE_TESTING.md.
+      storeKitConfiguration: Config/Tabby.storekit
     test:
       config: Debug
       targets:

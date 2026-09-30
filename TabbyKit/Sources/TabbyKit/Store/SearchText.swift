@@ -23,7 +23,7 @@ public enum SearchText {
     public static func filter(_ people: [Person], query: String) -> [Person] {
         let queryTerms = Self.terms(query)
         guard !queryTerms.isEmpty else { return people }
-        return people.filter { matches($0.searchText, terms: queryTerms) }
+        return people.filter { !$0.isLockedDraft && matches($0.searchText, terms: queryTerms) }
     }
 
     /// The text a Person is found by: name, handles, headlines, bios, note and tag names.

@@ -9,4 +9,9 @@ TABBY_BUNDLE_ID = com.tabbyapp.tabby
 TABBY_APP_GROUP = group.$(TABBY_BUNDLE_ID)
 DEVELOPMENT_TEAM =
 
+// US web checkout (Stripe), used instead of in-app purchase on US storefronts once the backend
+// grants purchases from its webhook. Empty = in-app purchase everywhere. `//` starts a comment in
+// xcconfig files, so write URLs as https:/$()/checkout.example.com/tabby
+TABBY_WEB_CHECKOUT_URL =
+
 #include? "Local.xcconfig"
