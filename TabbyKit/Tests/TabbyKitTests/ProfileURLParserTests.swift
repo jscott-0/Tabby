@@ -86,7 +86,7 @@ final class ProfileURLParserTests: XCTestCase {
     func testFirstURLInSharedText() {
         let url = ProfileURLParser.firstURL(in: "Check out Dev Okafor's profile on TikTok! https://www.tiktok.com/@devbuilds?_t=8abc")
         XCTAssertEqual(url?.host, "www.tiktok.com")
-        XCTAssertEqual(ProfileURLParser.firstURL(in: "  https://www.instagram.com/leo.makes/  ")?.path, "/leo.makes/")
+        XCTAssertEqual(ProfileURLParser.firstURL(in: "  https://www.instagram.com/leo.makes/  ")?.absoluteString, "https://www.instagram.com/leo.makes/")
         XCTAssertNil(ProfileURLParser.firstURL(in: "no links here"))
     }
 }
