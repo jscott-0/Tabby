@@ -67,6 +67,7 @@ struct SpacesView: View {
             SpaceTileView(tile: tile)
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("space-tile-\(tile.title)")
     }
 
     private var tiles: [SpaceTile] {
@@ -214,6 +215,7 @@ struct SearchResultsView: View {
                 NavigationLink(value: Route.person(person.id)) {
                     PersonRow(person: person)
                 }
+                .accessibilityIdentifier("person-row-\(person.title)")
             }
             .listStyle(.plain)
         }

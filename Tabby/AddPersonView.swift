@@ -22,6 +22,7 @@ struct AddPersonView: View {
             Form {
                 Section {
                     TextField("https://www.instagram.com/…", text: $link, axis: .vertical)
+                        .accessibilityIdentifier("add-link")
                         .keyboardType(.URL)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
@@ -141,7 +142,7 @@ struct AddPersonView: View {
         guard target.kind == .profile || target.kind == .shortLink else { return }
         isImporting = true
         defer { isImporting = false }
-        let result = await EnrichmentService().enrich(target)
+        let result = await AppServices.enrichment().enrich(target)
         ExtractionLog.shared.append(ExtractionAttempt(result.extraction, source: .addSheet))
         guard !Task.isCancelled, var current = draft else { return }
         current.apply(result.extraction)

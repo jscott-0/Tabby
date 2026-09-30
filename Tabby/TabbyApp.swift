@@ -42,6 +42,12 @@ final class AppModel {
     private let sharedDefaults = SharedDefaults.shared
 
     init() {
+        #if DEBUG
+        if UITesting.isEnabled {
+            container = SampleData.previewContainer()
+            return
+        }
+        #endif
         do {
             container = try TabbyContainer.make()
         } catch {
@@ -54,6 +60,9 @@ final class AppModel {
     /// Reopen the store when it has written since we last looked, show any pending "Open in Tabby",
     /// then retry profiles whose extraction didn't complete.
     func becameActive() {
+        #if DEBUG
+        if UITesting.isEnabled { return }
+        #endif
         if let write = sharedDefaults.lastExternalWrite, write != lastSeenExternalWrite {
             lastSeenExternalWrite = write
             if let fresh = try? TabbyContainer.make() {
@@ -71,7 +80,7 @@ final class AppModel {
 
     private func retryIncompleteProfiles() {
         guard retryTask == nil else { return }
-        let queue = RetryQueue(context: container.mainContext, service: EnrichmentService(renderer: WebPageRenderer()))
+        let queue = RetryQueue(context: container.mainContext, service: AppServices.enrichment(renderer: WebPageRenderer()))
         let run = UUID()
         retryRun = run
         retryTask = Task { [weak self] in
@@ -93,6 +102,18 @@ struct RootView: View {
     @Bindable var model: AppModel
 
     var body: some View {
+        #if DEBUG
+        if let url = UITesting.shareURL {
+            UITestShareHost(url: url)
+        } else {
+            stack
+        }
+        #else
+        stack
+        #endif
+    }
+
+    private var stack: some View {
         NavigationStack(path: $model.path) {
             SpacesView()
                 .navigationDestination(for: Route.self) { route in

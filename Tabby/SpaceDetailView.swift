@@ -51,6 +51,7 @@ struct SpaceDetailView: View {
                         NavigationLink(value: Route.person(person.id)) {
                             PersonRow(person: person)
                         }
+                        .accessibilityIdentifier("person-row-\(person.title)")
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
                                 store.delete([person])

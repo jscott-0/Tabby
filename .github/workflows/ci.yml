@@ -33,3 +33,69 @@ jobs:
             -scheme Tabby \
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO
+
+  ui-tests:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+
+      - name: Pick an iPhone simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          runtimes = sorted((r for r in devices if ".iOS-" in r), key=lambda r: [int(p) for p in r.split(".iOS-")[1].split("-")], reverse=True)
+          print(next(d["udid"] for r in runtimes for d in devices[r] if d["name"].startswith("iPhone")))
+          ')
+          echo "SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl list devices | grep "$UDID"
+
+      - name: UI tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Tabby.xcodeproj \
+            -scheme Tabby \
+            -destination "id=$SIMULATOR_UDID" \
+            -resultBundlePath UITests.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export screenshots
+        if: always()
+        run: |
+          mkdir -p screenshots
+          xcrun xcresulttool export attachments --path UITests.xcresult --output-path screenshots || true
+          ls -la screenshots
+          # Small JPEGs in the log, so they can be reviewed without downloading the artifact.
+          python3 - <<'PY'
+          import base64, json, os, subprocess
+          folder = "screenshots"
+          names = {}
+          manifest = os.path.join(folder, "manifest.json")
+          if os.path.exists(manifest):
+              for test in json.load(open(manifest)):
+                  for attachment in test.get("attachments", []):
+                      names[attachment["exportedFileName"]] = attachment.get("suggestedHumanReadableName", attachment["exportedFileName"])
+          for file in sorted(os.listdir(folder)):
+              if not file.lower().endswith((".png", ".jpg", ".jpeg")):
+                  continue
+              small = os.path.join(folder, "small-" + os.path.splitext(file)[0] + ".jpg")
+              subprocess.run(["sips", "-s", "format", "jpeg", "-s", "formatOptions", "45", "-Z", "900", os.path.join(folder, file), "--out", small], check=True, capture_output=True)
+              data = base64.b64encode(open(small, "rb").read()).decode()
+              print(f"SCREENSHOT_BEGIN {names.get(file, file)}")
+              print(data)
+              print("SCREENSHOT_END")
+          PY
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: screenshots

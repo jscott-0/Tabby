@@ -87,6 +87,7 @@ struct ShareSheetView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
+            .accessibilityIdentifier("share-save")
             .padding(.horizontal)
             .padding(.vertical, 10)
             .background(.bar)
@@ -118,6 +119,7 @@ struct PreviewCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     TextField("Name", text: $draft.displayName)
                         .font(.title3.weight(.semibold))
+                        .accessibilityIdentifier("preview-name")
                     HStack(spacing: 6) {
                         PlatformBadge(platform: draft.platform, showsName: true)
                         Text(handleText)
