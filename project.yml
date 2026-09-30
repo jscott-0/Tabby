@@ -1,0 +1,77 @@
+# XcodeGen spec. Run `xcodegen generate` to create Tabby.xcodeproj (not committed).
+name: Tabby
+options:
+  bundleIdPrefix: com.tabbyapp
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+packages:
+  TabbyKit:
+    path: TabbyKit
+targets:
+  Tabby:
+    type: application
+    platform: iOS
+    sources: [Tabby]
+    dependencies:
+      - package: TabbyKit
+        product: TabbyKit
+      - target: TabbyShare
+    info:
+      path: Tabby/Info.plist
+      properties:
+        CFBundleDisplayName: Tabby
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        CFBundleURLTypes:
+          - CFBundleURLName: com.tabbyapp.tabby
+            CFBundleURLSchemes: [tabby]
+    entitlements:
+      path: Tabby/Tabby.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.tabbyapp.tabby]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tabbyapp.tabby
+        TARGETED_DEVICE_FAMILY: "1"
+  TabbyShare:
+    type: app-extension
+    platform: iOS
+    sources: [TabbyShare]
+    dependencies:
+      - package: TabbyKit
+        product: TabbyKit
+    info:
+      path: TabbyShare/Info.plist
+      properties:
+        CFBundleDisplayName: Tabby
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsImageWithMaxCount: 1
+    entitlements:
+      path: TabbyShare/TabbyShare.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.tabbyapp.tabby]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tabbyapp.tabby.share
+        TARGETED_DEVICE_FAMILY: "1"
+schemes:
+  Tabby:
+    build:
+      targets:
+        Tabby: all
+        TabbyShare: all
+    run:
+      config: Debug
