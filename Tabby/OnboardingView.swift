@@ -294,6 +294,7 @@ private struct InterestsStep: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("creator-\(creator.id)")
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 

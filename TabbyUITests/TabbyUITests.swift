@@ -147,6 +147,7 @@ final class TabbyUITests: XCTestCase {
         let creator = element("creator-instagram:tastemade", in: app)
         XCTAssertTrue(creator.waitForExistence(timeout: 5))
         creator.tap()
+        wait(for: [expectation(for: NSPredicate(format: "isSelected == true"), evaluatedWith: creator)], timeout: 5)
         screenshot("13-onboarding-interests", app)
         next.tap()
 
