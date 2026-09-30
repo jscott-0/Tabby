@@ -166,6 +166,7 @@ struct SpaceTileView: View {
             Text(tile.title)
                 .font(.headline)
                 .lineLimit(1)
+                .minimumScaleFactor(0.75)
             HStack {
                 Text("\(tile.members.count)")
                     .font(.subheadline)
