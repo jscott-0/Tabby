@@ -217,16 +217,7 @@ struct TeachingChecklist: View {
             }
         }
         .padding(.vertical, 4)
-        .animation(.default, value: TeachingState(flow: flow))
-    }
-
-    private struct TeachingState: Equatable {
-        let details: Bool, tag: Bool, note: Bool
-        init(flow: ShareFlow) {
-            details = flow.isDone(.details)
-            tag = flow.isDone(.tag)
-            note = flow.isDone(.note)
-        }
+        .animation(.default, value: ShareFlow.TeachingItem.allCases.map(flow.isDone))
     }
 }
 
