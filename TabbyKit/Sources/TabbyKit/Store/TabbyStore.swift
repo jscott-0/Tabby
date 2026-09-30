@@ -59,7 +59,7 @@ public final class TabbyStore {
     /// non-empty fields win, tags become `draft.tagIDs`, and a new note is appended with the date.
     @discardableResult
     public func save(_ draft: PersonDraft, at date: Date = .now) throws -> SaveOutcome {
-        let existingAccount = draft.dedupKey.flatMap { account(dedupKey: $0) }
+        let existingAccount = draft.dedupKey.flatMap { self.account(dedupKey: $0) }
         let person: Person
         let account: Account
         let wasExisting: Bool
@@ -199,7 +199,7 @@ public final class TabbyStore {
     public func findOrCreateTag(named raw: String, at date: Date = .now) -> Tag? {
         let name = Tag.normalizedName(raw)
         guard !name.isEmpty else { return nil }
-        if let existing = tag(named: name) { return existing }
+        if let existing = self.tag(named: name) { return existing }
         let tag = Tag(name: name, colorIndex: nextColorIndex(), createdAt: date)
         context.insert(tag)
         persist()

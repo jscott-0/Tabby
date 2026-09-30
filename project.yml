@@ -18,7 +18,7 @@ targets:
   Tabby:
     type: application
     platform: iOS
-    sources: [Tabby]
+    sources: [Tabby, SharedUI]
     dependencies:
       - package: TabbyKit
         product: TabbyKit
@@ -43,7 +43,7 @@ targets:
   TabbyShare:
     type: app-extension
     platform: iOS
-    sources: [TabbyShare]
+    sources: [TabbyShare, SharedUI]
     dependencies:
       - package: TabbyKit
         product: TabbyKit

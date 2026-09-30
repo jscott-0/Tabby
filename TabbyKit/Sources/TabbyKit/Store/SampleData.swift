@@ -64,11 +64,11 @@ public enum SampleData {
     ]
 
     static let spaces: [(draft: SpaceDraft, tags: [String], pinned: Bool)] = [
-        (space("Hardware designers", icon: "cpu", color: 0, matchAll: true), ["designer", "hardware"], true),
-        (space("Boston", icon: "building.2.fill", color: 3, matchAll: false), ["boston", "cambridge"], false),
-        (space("Makers", icon: "hammer.fill", color: 4, matchAll: false), ["maker"], false),
-        (space("Fitness creators", icon: "figure.run", color: 6, matchAll: false, platforms: [.tiktok, .instagram]), ["fitness"], false),
-        (space("Food", icon: "fork.knife", color: 5, matchAll: false), ["food"], false),
+        (SampleData.space("Hardware designers", icon: "cpu", color: 0, matchAll: true), ["designer", "hardware"], true),
+        (SampleData.space("Boston", icon: "building.2.fill", color: 3, matchAll: false), ["boston", "cambridge"], false),
+        (SampleData.space("Makers", icon: "hammer.fill", color: 4, matchAll: false), ["maker"], false),
+        (SampleData.space("Fitness creators", icon: "figure.run", color: 6, matchAll: false, platforms: [.tiktok, .instagram]), ["fitness"], false),
+        (SampleData.space("Food", icon: "fork.knife", color: 5, matchAll: false), ["food"], false),
     ]
 
     private static func space(_ name: String, icon: String, color: Int, matchAll: Bool, platforms: Set<Platform> = []) -> SpaceDraft {

@@ -61,7 +61,7 @@ extension Person {
 
     /// Extraction never succeeded for any Account.
     public var needsInfo: Bool {
-        let accounts = accounts ?? []
-        return !accounts.isEmpty && accounts.allSatisfy { $0.extractionStatus == .pending || $0.extractionStatus == .failed }
+        let all = accounts ?? []
+        return !all.isEmpty && all.allSatisfy { $0.extractionStatus == .pending || $0.extractionStatus == .failed }
     }
 }

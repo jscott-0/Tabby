@@ -4,8 +4,9 @@ iOS rolodex for LinkedIn / Instagram / TikTok profiles, saved via the share shee
 Spec: "Tabby — iOS Spec for Claude Code" doc. Build plan and phase gates: `docs/PLAN.md`.
 
 ## Layout
-- `TabbyKit/` — Swift package with all shared logic (parsers, fetcher, later models). `tabby-extract` is the Phase 0 spike CLI.
+- `TabbyKit/` — Swift package with all shared logic: parsers, fetcher, SwiftData models and `TabbyStore` (every write goes through it). `tabby-extract` is the Phase 0 spike CLI.
 - `Tabby/` — main app target. `TabbyShare/` — share extension target.
+- `SharedUI/` — SwiftUI components compiled into both targets (tag picker, avatars, chips). iOS-only, so it lives outside the package.
 - `project.yml` — XcodeGen spec; `Tabby.xcodeproj`, Info.plists and entitlements are generated, not committed.
 
 ## Commands (macOS)
