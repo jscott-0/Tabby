@@ -23,13 +23,21 @@ public final class ShareFlow {
     public var saveError: String?
 
     private let store: TabbyStore
-    private let fetcher: MetadataFetcher
+    private let service: EnrichmentService
     private let sharedDefaults: SharedDefaults
+    private let log: ExtractionLog?
 
-    public init(context: ModelContext, fetcher: MetadataFetcher = MetadataFetcher(), sharedDefaults: SharedDefaults = .shared) {
+    /// No page renderer here: tier 4 is too slow and memory-hungry for an extension.
+    public init(
+        context: ModelContext,
+        service: EnrichmentService = EnrichmentService(),
+        sharedDefaults: SharedDefaults = .shared,
+        log: ExtractionLog? = .shared
+    ) {
         self.store = TabbyStore(context: context)
-        self.fetcher = fetcher
+        self.service = service
         self.sharedDefaults = sharedDefaults
+        self.log = log
     }
 
     /// Shown above the preview when the link isn't a profile.
@@ -59,17 +67,23 @@ public final class ShareFlow {
         await importMetadata()
     }
 
-    /// Tiers 2–3. Only fills fields the user hasn't typed into; failure leaves tier 1 in place.
+    /// Tiers 2–3, then the avatar (downscaled). Only fills fields the user hasn't typed into;
+    /// failure leaves tier 1 in place. Saving doesn't wait for the avatar.
     public func importMetadata() async {
         guard let parsed else { return }
         let target = parsed.authorProfile ?? parsed
         guard target.kind == .profile || target.kind == .shortLink else { return }
         isImporting = true
-        let result = await fetcher.fetch(target)
+        let result = await service.enrich(target, downloadAvatar: false)
         isImporting = false
+        log?.append(ExtractionAttempt(result.extraction, source: .shareSheet))
         guard phase == .editing else { return }
-        draft.apply(result)
+        draft.apply(result.extraction)
         adoptExisting()
+
+        guard draft.avatarData == nil, let avatarURL = draft.avatarURL else { return }
+        let avatar = await AvatarProcessor.download(avatarURL, client: service.client)
+        if phase == .editing, draft.avatarData == nil { draft.avatarData = avatar }
     }
 
     /// A duplicate starts from what's saved: its tags pre-selected, its name kept.

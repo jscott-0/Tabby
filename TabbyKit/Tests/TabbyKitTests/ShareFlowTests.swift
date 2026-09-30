@@ -21,8 +21,8 @@ final class ShareFlowTests: XCTestCase {
     private func makeFlow(_ responses: [String: HTTPResponse] = [:], defaults: SharedDefaults? = nil) throws -> (ShareFlow, TabbyStore) {
         let container = try TabbyContainer.make(inMemory: true)
         containers.append(container)
-        let fetcher = MetadataFetcher(client: StubHTTPClient(responses))
-        let flow = ShareFlow(context: container.mainContext, fetcher: fetcher, sharedDefaults: defaults ?? makeDefaults())
+        let service = EnrichmentService(client: StubHTTPClient(responses))
+        let flow = ShareFlow(context: container.mainContext, service: service, sharedDefaults: defaults ?? makeDefaults(), log: nil)
         return (flow, TabbyStore(context: container.mainContext))
     }
 

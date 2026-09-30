@@ -116,6 +116,35 @@ public final class TabbyStore {
         persist()
     }
 
+    /// Merges a fetch into an Account. Fills empty fields only, unless `overwrite` (an explicit
+    /// re-fetch), which replaces the Account's fetched fields but never the user's name, note or tags.
+    public func applyEnrichment(_ result: EnrichmentResult, to account: Account, overwrite: Bool = false, at date: Date = .now) {
+        guard let person = account.person else { return }
+        let extraction = result.extraction
+        if extraction.status != .failed {
+            let metadata = extraction.metadata
+            if person.displayName.isEmpty, let name = metadata.name { person.displayName = name }
+            if let headline = metadata.headline, overwrite || account.headline.isEmpty { account.headline = headline }
+            if let bio = metadata.bio, overwrite || account.bio.isEmpty { account.bio = bio }
+            if !metadata.links.isEmpty, overwrite || account.links.isEmpty { account.links = metadata.links }
+            if let count = metadata.followerCount { account.followerCount = count }
+            if let avatarURL = metadata.avatarURL { account.avatarURL = avatarURL }
+            account.rawMetadata = try? JSONEncoder().encode(metadata)
+            account.fetchedAt = date
+        }
+        if let avatarData = result.avatarData { person.avatarData = avatarData }
+        if overwrite || extraction.status.rank >= account.extractionStatus.rank {
+            account.extractionStatus = extraction.status
+        }
+        if overwrite {
+            account.fetchAttempts = 0
+            account.lastAttemptAt = nil
+        }
+        person.updatedAt = date
+        refreshSearchText(person)
+        persist()
+    }
+
     public func setTags(_ tagIDs: Set<UUID>, for person: Person) {
         applyTags(tagIDs, to: person, at: .now)
         person.updatedAt = .now

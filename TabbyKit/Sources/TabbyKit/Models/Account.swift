@@ -19,6 +19,9 @@ public final class Account {
     /// JSON-encoded `ProfileMetadata` from the last fetch.
     @Attribute(.externalStorage) public var rawMetadata: Data?
     public var fetchedAt: Date?
+    /// Automatic retries so far (see `RetryQueue`); reset when the user re-fetches.
+    public var fetchAttempts: Int = 0
+    public var lastAttemptAt: Date?
     public var createdAt: Date = Date.now
     public var person: Person?
 

@@ -54,7 +54,7 @@ struct TabbyExtract {
             // Be polite: at most one request per second.
             if index < inputs.count - 1 { try? await Task.sleep(nanoseconds: 1_000_000_000) }
         }
-        print(summary(results))
+        print("\n" + ExtractionStats.markdownTable(results.map { ExtractionAttempt($0, source: .cli) }))
     }
 
     static func report(_ result: ExtractionResult) {
@@ -74,27 +74,6 @@ struct TabbyExtract {
         \(show(.links, m.links.isEmpty ? nil : m.links.map(\.absoluteString).joined(separator: ", ")))
         \(show(.followerCount, m.followerCount.map { String($0) }))
         """)
-    }
-
-    /// Markdown table: % of shares per platform where each field was filled.
-    static func summary(_ results: [ExtractionResult]) -> String {
-        let fields = ProfileMetadata.Field.allCases
-        var lines = [
-            "",
-            "| Platform | Shares | " + fields.map(\.rawValue).joined(separator: " | ") + " | complete | partial | failed |",
-            "|" + String(repeating: "---|", count: fields.count + 5),
-        ]
-        for platform in Platform.allCases {
-            let group = results.filter { $0.parsed.platform == platform }
-            guard !group.isEmpty else { continue }
-            func percent(_ count: Int) -> String { "\(count * 100 / group.count)%" }
-            let fieldCells = fields.map { field in percent(group.filter { $0.metadata.has(field) }.count) }
-            let statusCells = [ExtractionStatus.complete, .partial, .failed].map { status in
-                percent(group.filter { $0.status == status }.count)
-            }
-            lines.append("| \(platform.rawValue) | \(group.count) | " + (fieldCells + statusCells).joined(separator: " | ") + " |")
-        }
-        return lines.joined(separator: "\n")
     }
 
     static func save(_ html: String, for parsed: ParsedProfileURL, in directory: URL) {

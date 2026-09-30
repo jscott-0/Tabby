@@ -12,6 +12,7 @@ struct SpacesView: View {
     @State private var isAddingPerson = false
     @State private var isReordering = false
     @State private var pendingDelete: Space?
+    @State private var isShowingExtractionLog = false
 
     private var store: TabbyStore { TabbyStore(context: context) }
 
@@ -23,6 +24,7 @@ struct SpacesView: View {
             .sheet(item: $editor) { target in SpaceEditorView(space: target.space) }
             .sheet(isPresented: $isAddingPerson) { AddPersonView() }
             .sheet(isPresented: $isReordering) { ReorderSpacesView() }
+            .sheet(isPresented: $isShowingExtractionLog) { ExtractionLogView() }
             .confirmationDialog(
                 "Delete “\(pendingDelete?.name ?? "")”?",
                 isPresented: Binding(isPresent: $pendingDelete),
@@ -108,6 +110,7 @@ struct SpacesView: View {
                 #if DEBUG
                 Divider()
                 Button { SampleData.seed(into: context) } label: { Label("Add sample data", systemImage: "wand.and.stars") }
+                Button { isShowingExtractionLog = true } label: { Label("Extraction log", systemImage: "list.bullet.clipboard") }
                 #endif
             } label: {
                 Label("Add", systemImage: "plus")
