@@ -98,12 +98,19 @@ public enum SampleData {
             draft.tagIDs = Set(entry.tags.compactMap { store.findOrCreateTag(named: $0, at: date)?.id })
             _ = try? store.save(draft, at: date)
         }
-        for (index, sample) in spaces.enumerated() {
+        let existingSpaces = Set(store.allSpaces().map(\.name))
+        for (index, sample) in spaces.enumerated() where !existingSpaces.contains(sample.draft.name) {
             var draft = sample.draft
             draft.tagIDs = Set(sample.tags.compactMap { store.tag(named: $0)?.id })
             let created = try? store.createSpace(draft, at: now.addingTimeInterval(Double(index)))
             if sample.pinned, let created { store.setPinned(true, for: created) }
         }
+    }
+
+    /// Sample handles are prefixed so they can be recognized (and never fetched).
+    public nonisolated static func isSampleHandle(_ handle: String) -> Bool {
+        let lowered = handle.lowercased()
+        return lowered.hasPrefix("tabby_sample") || lowered.hasPrefix("tabby-sample")
     }
 
     /// An in-memory container seeded with the sample data, for previews.
