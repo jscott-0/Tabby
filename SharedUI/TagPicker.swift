@@ -79,11 +79,17 @@ struct TagPicker: View {
                     newName = ""
                     isAdding = true
                 } label: {
-                    Label("New tag", systemImage: "plus")
-                        .font(.subheadline)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .overlay(Capsule().strokeBorder(Color.secondary.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [4])))
+                    // Not a Label: inside a Form, Label's row styling collapses it to a tall icon-only pill.
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                        Text("New tag")
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(Color.accentColor)
+                    .fixedSize()
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .overlay(Capsule().strokeBorder(Color.secondary.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [4])))
                 }
                 .buttonStyle(.plain)
             }

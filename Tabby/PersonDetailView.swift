@@ -138,20 +138,25 @@ private struct AccountRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            PlatformBadge(platform: account.platform, showsName: true)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(account.displayHandle).lineLimit(1)
-                if let followers = account.followerCount {
-                    Text("\(followers.formatted(.number.notation(.compactName))) followers")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    PlatformBadge(platform: account.platform, showsName: true)
+                    if let followers = account.followerCount {
+                        Text("\(followers.formatted(.number.notation(.compactName))) followers")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                Text(account.displayHandle)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
             }
-            Spacer()
+            Spacer(minLength: 8)
             if let url = account.profileURL {
                 Button("Open in app") { openURL(url) }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
+                    .fixedSize()
             }
         }
     }
