@@ -14,7 +14,8 @@ struct TabbyApp: App {
                 .id(model.storeGeneration)
                 .modelContainer(model.container)
         }
-        .onChange(of: scenePhase) { _, phase in
+        // `initial` so a cold launch (already active, no change) still runs it.
+        .onChange(of: scenePhase, initial: true) { _, phase in
             if phase == .active { model.becameActive() }
         }
     }

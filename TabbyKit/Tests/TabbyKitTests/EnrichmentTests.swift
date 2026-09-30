@@ -41,13 +41,14 @@ final class EnrichmentTests: XCTestCase {
         return (width, height)
     }
 
-    private let profile = ProfileURLParser.profile(platform: .tiktok, handle: "tabby_sample_dev")!
+    /// Not a sample handle: RetryQueue deliberately skips those.
+    private let profile = ProfileURLParser.profile(platform: .tiktok, handle: "okafor_builds")!
     private let avatarURL = "https://cdn.example.com/tt/dev.jpg"
     private var pageHTML: String {
         """
-        <meta property="og:title" content="Dev Okafor (@tabby_sample_dev) | TikTok">
+        <meta property="og:title" content="Dev Okafor (@okafor_builds) | TikTok">
         <meta property="og:image" content="\(avatarURL)">
-        <meta property="og:description" content="Dev Okafor (@tabby_sample_dev) on TikTok | 10 Likes. 5 Followers. hardware tinkerer. Watch the latest video from Dev Okafor (@tabby_sample_dev).">
+        <meta property="og:description" content="Dev Okafor (@okafor_builds) on TikTok | 10 Likes. 5 Followers. hardware tinkerer. Watch the latest video from Dev Okafor (@okafor_builds).">
         """
     }
 
@@ -137,6 +138,13 @@ final class EnrichmentTests: XCTestCase {
         XCTAssertEqual(account.fetchAttempts, RetryQueue.maxAttempts)
         XCTAssertTrue(queue.candidates(now: start.addingTimeInterval(10 * RetryQueue.minimumInterval)).isEmpty, "gives up")
         XCTAssertEqual(account.person?.needsInfo, true, "still shown in Needs info")
+    }
+
+    func testSampleProfilesAreNeverFetched() throws {
+        let context = try makeContext()
+        SampleData.seed(into: context)
+        let queue = RetryQueue(context: context, service: EnrichmentService(client: StubHTTPClient([:])), log: nil)
+        XCTAssertTrue(queue.candidates().isEmpty, "sample people in Needs info must not trigger real requests")
     }
 
     func testUserEditsSurviveEnrichmentButRefetchOverwrites() throws {

@@ -53,10 +53,14 @@ final class ShareViewController: UIViewController {
     /// If opening the app fails, the pending open saved by `requestOpen()` shows this person
     /// the next time Tabby comes to the foreground.
     private func openInTabby(_ flow: ShareFlow) {
-        if let url = flow.requestOpen() {
-            HostAppOpener.open(url, from: self)
+        guard let url = flow.requestOpen(), HostAppOpener.open(url, from: self) else {
+            finish()
+            return
         }
-        finish()
+        // Completing the request right away can cancel the open before it happens.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.finish()
+        }
     }
 }
 
