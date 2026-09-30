@@ -20,8 +20,34 @@ enum UITesting {
     static let flag = "-uiTesting"
     /// Followed by a URL: shows the share sheet for it instead of My Tabs.
     static let shareFlag = "-uiTestingShare"
+    /// Starts onboarding with an empty store on the free plan.
+    static let onboardingFlag = "-uiTestingOnboarding"
+    /// The free plan (sample data is over its limit, so new saves become locked drafts).
+    static let freeFlag = "-uiTestingFree"
+    /// The share sheet in first-save teaching mode.
+    static let teachingFlag = "-uiTestingTeaching"
 
     static var isEnabled: Bool { ProcessInfo.processInfo.arguments.contains(flag) }
+    static var isOnboarding: Bool { ProcessInfo.processInfo.arguments.contains(onboardingFlag) }
+
+    /// A fresh App Group stand-in per launch, set up for the flags above. Purchases are simulated.
+    static let sharedDefaults: SharedDefaults = {
+        let name = "tabby-ui-tests"
+        let defaults = UserDefaults(suiteName: name) ?? .standard
+        defaults.removePersistentDomain(forName: name)
+        let shared = SharedDefaults(defaults: defaults)
+        let arguments = ProcessInfo.processInfo.arguments
+        shared.onboardingFinished = !isOnboarding
+        shared.hasCompletedFirstSave = !isOnboarding && !arguments.contains(teachingFlag)
+        shared.entitlement = isOnboarding || arguments.contains(freeFlag) ? .free : .pro
+        return shared
+    }()
+
+    @MainActor
+    static func makeContainer() -> ModelContainer {
+        if isOnboarding, let empty = try? TabbyContainer.make(inMemory: true) { return empty }
+        return SampleData.previewContainer()
+    }
 
     static var shareURL: URL? {
         let arguments = ProcessInfo.processInfo.arguments
@@ -64,7 +90,7 @@ struct UITestShareHost: View {
             let flow = ShareFlow(
                 context: context,
                 service: AppServices.enrichment(),
-                sharedDefaults: SharedDefaults(defaults: UserDefaults(suiteName: "tabby-ui-tests") ?? .standard),
+                sharedDefaults: UITesting.sharedDefaults,
                 log: nil
             )
             self.flow = flow

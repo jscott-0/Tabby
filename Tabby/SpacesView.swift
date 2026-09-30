@@ -13,6 +13,8 @@ struct SpacesView: View {
     @State private var isReordering = false
     @State private var pendingDelete: Space?
     @State private var isShowingExtractionLog = false
+    @Environment(\.entitlement) private var entitlement
+    @Environment(\.showPaywall) private var showPaywall
 
     private var store: TabbyStore { TabbyStore(context: context) }
 
@@ -45,6 +47,9 @@ struct SpacesView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     if people.isEmpty {
                         FirstLaunchCard { isAddingPerson = true }
+                    } else if !entitlement.hasUnlimitedTabs {
+                        FreePlanBanner(used: people.filter { !$0.isLockedDraft }.count,
+                                       drafts: people.filter(\.isLockedDraft).count) { showPaywall(.banner) }
                     }
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                         ForEach(tiles) { tile in
@@ -72,9 +77,12 @@ struct SpacesView: View {
 
     private var tiles: [SpaceTile] {
         let facts = people.map(PersonFacts.init)
-        let builtIns = BuiltInSpace.allCases.map { builtIn in
-            SpaceTile(ref: .builtIn(builtIn), space: nil, title: builtIn.title, icon: builtIn.icon,
-                      color: .accentColor, members: facts.members(of: builtIn))
+        let builtIns = BuiltInSpace.allCases.compactMap { builtIn -> SpaceTile? in
+            let members = facts.members(of: builtIn)
+            // Only there while something is waiting.
+            if builtIn == .waitingToUnlock, members.isEmpty { return nil }
+            return SpaceTile(ref: .builtIn(builtIn), space: nil, title: builtIn.title, icon: builtIn.icon,
+                             color: builtIn == .waitingToUnlock ? .orange : .accentColor, members: members)
         }
         let ordered = spaces.filter(\.isPinned) + spaces.filter { !$0.isPinned }
         let custom = ordered.map { space in
@@ -219,6 +227,39 @@ struct SearchResultsView: View {
             }
             .listStyle(.plain)
         }
+    }
+}
+
+/// Free plan: "1 of 1 free Tab used", and how many drafts are waiting.
+struct FreePlanBanner: View {
+    let used: Int
+    let drafts: Int
+    let onUnlock: () -> Void
+
+    var body: some View {
+        Button(action: onUnlock) {
+            HStack(spacing: 12) {
+                Image(systemName: drafts > 0 ? "lock.fill" : "person.crop.circle.badge.plus")
+                    .font(.title3)
+                    .foregroundStyle(.tint)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(min(used, PaywallPolicy.freeTabLimit)) of \(PaywallPolicy.freeTabLimit) free Tab used")
+                        .font(.subheadline.weight(.semibold))
+                    Text(drafts > 0 ? "\(drafts) waiting to unlock" : "Unlock to save as many as you like")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Text("Unlock")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.tint)
+            }
+            .padding(12)
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("free-plan-banner")
     }
 }
 

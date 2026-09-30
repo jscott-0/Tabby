@@ -44,12 +44,28 @@ struct ShareSheetView: View {
         case .editing:
             editor
         case .saved(_, let name):
-            SavedView(name: name, onOpenInTabby: onOpenInTabby, onDone: onClose)
+            SavedView(name: name, isDraft: flow.savedAsDraft, onOpenInTabby: onOpenInTabby, onDone: onClose)
         }
     }
 
     private var editor: some View {
         Form {
+            if flow.isTeaching {
+                Section {
+                    TeachingChecklist(flow: flow)
+                } header: {
+                    Text("Your first save")
+                } footer: {
+                    Text("Tags and a reason are what make someone easy to find later.")
+                }
+            }
+            if flow.willLock {
+                Section {
+                    Label("You've used your free Tab. This one saves as a draft until you unlock Tabby.", systemImage: "lock.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.orange)
+                }
+            }
             if let notice = flow.notice {
                 Section {
                     Label(notice, systemImage: "info.circle")
@@ -75,19 +91,28 @@ struct ShareSheetView: View {
             Section("Why I saved them") {
                 TextField("e.g. Great packaging work, possible collaborator", text: $flow.draft.note, axis: .vertical)
                     .lineLimit(2...6)
+                    .accessibilityIdentifier("share-note")
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            Button {
-                flow.save()
-            } label: {
-                Text("Save")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
+            VStack(spacing: 6) {
+                Button {
+                    flow.save()
+                } label: {
+                    Text(flow.saveButtonTitle)
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(!flow.canSave)
+                .accessibilityIdentifier("share-save")
+                if flow.isTeaching {
+                    Button("Skip and save") { flow.skipTeaching() }
+                        .font(.subheadline)
+                        .accessibilityIdentifier("share-skip")
+                }
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .accessibilityIdentifier("share-save")
             .padding(.horizontal)
             .padding(.vertical, 10)
             .background(.bar)
@@ -164,9 +189,42 @@ struct PreviewCard: View {
     }
 }
 
-/// Modeled on ReciMe's "Recipe saved!" screen.
+/// First-save lesson: check the details, add a tag, say why. Import unlocks when all three are done.
+struct TeachingChecklist: View {
+    @Bindable var flow: ShareFlow
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(ShareFlow.TeachingItem.allCases, id: \.self) { item in
+                let done = flow.isDone(item)
+                HStack(spacing: 10) {
+                    Image(systemName: done ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundStyle(done ? Color.green : Color.secondary)
+                        .contentTransition(.symbolEffect(.replace))
+                    Text(item.title)
+                        .strikethrough(done, color: .secondary)
+                        .foregroundStyle(done ? .secondary : .primary)
+                    Spacer()
+                    if item == .details, !done {
+                        Button("Looks right") { flow.hasConfirmedDetails = true }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                            .accessibilityIdentifier("share-confirm-details")
+                    }
+                }
+                .font(.subheadline)
+            }
+        }
+        .padding(.vertical, 4)
+        .animation(.default, value: ShareFlow.TeachingItem.allCases.map(flow.isDone))
+    }
+}
+
+/// Modeled on ReciMe's "Recipe saved!" screen. A locked draft gets "Unlock in Tabby" instead.
 struct SavedView: View {
     let name: String
+    var isDraft = false
     let onOpenInTabby: () -> Void
     let onDone: () -> Void
     @State private var hasAppeared = false
@@ -174,19 +232,25 @@ struct SavedView: View {
     var body: some View {
         VStack(spacing: 16) {
             Spacer()
-            Image(systemName: "checkmark.seal.fill")
+            Image(systemName: isDraft ? "lock.fill" : "checkmark.seal.fill")
                 .font(.system(size: 72))
-                .foregroundStyle(.tint)
+                .foregroundStyle(isDraft ? Color.orange : Color.accentColor)
                 .symbolEffect(.bounce, value: hasAppeared)
-            Text("Saved to Tabby!")
+            Text(isDraft ? "Saved as a draft" : "Saved to Tabby!")
                 .font(.title2.bold())
             Text(name)
                 .font(.headline)
                 .foregroundStyle(.secondary)
+            if isDraft {
+                Text("Unlock Tabby to open them and keep saving.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
             Spacer()
             Button(action: onOpenInTabby) {
                 HStack {
-                    Text("Open in Tabby")
+                    Text(isDraft ? "Unlock in Tabby" : "Open in Tabby")
                     Image(systemName: "arrow.up.right")
                 }
                 .font(.headline)

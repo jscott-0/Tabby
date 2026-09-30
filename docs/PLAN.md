@@ -49,11 +49,17 @@ backend/supabase/         migrations, edge functions (Phase 4+)
 
 **Phase 5 — Onboarding + first-save teaching mode**
 - Welcome → account → interests (categories + creator grid) → first suggestion → deep link out → teaching-mode share sheet (3-item checklist, Import, Skip) driven by `onboardingStep` in App Group → back on the saved Person. "Didn't see Tabby?" card + paste-link fallback.
+- Status: built with Phase 6 (same PR). The first person saved, from the share sheet or a pasted link, ends onboarding.
 
 **Phase 6 — Paywall + purchases**
 - Paywall (Unlimited Tabs one-time, Tabby Pro monthly/annual), storefront routing via `Storefront.current.countryCode`: US → Stripe web checkout in SFSafariViewController + webhook edge function; else StoreKit 2 + App Store Server Notifications. Single server-side entitlement. Free gating: 1 Person, locked drafts in "Waiting to unlock", Pro badges.
 - Demo mode: separate in-memory store from bundled JSON seed (~30 People, ~200 index profiles, all fictional; no AI chat), persistent banner.
 - Gate: demo leaves the real store byte-identical; both purchase paths unlock drafts.
+- Status: app side built ahead of Phase 4. Account and entitlement live on the device (StoreKit 2 is
+  the source of truth; cached in the App Group for the extension). Demo uses the in-app sample data,
+  not the Talent Search index, which doesn't exist yet. Web checkout needs Phase 4's webhook, so it's
+  off until `TABBY_WEB_CHECKOUT_URL` is set. Placeholders: prices (`Config/Tabby.storekit`),
+  onboarding creators (`OnboardingCatalog`), Terms/Privacy links.
 
 **Phase 7 — Talent Search (browse + keyword search only)**
 - Shared index table (public fields only, save counts, opt-in aggregated tags), Postgres full-text search, add-to-My-Tabs from a result. Opt-out/removal request flow (pending legal).

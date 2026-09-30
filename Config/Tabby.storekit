@@ -1,0 +1,91 @@
+{
+  "identifier" : "7D1F4C2A",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "14.99",
+      "familyShareable" : false,
+      "internalID" : "6740000001",
+      "localizations" : [
+        {
+          "description" : "Save as many people as you like. Pay once.",
+          "displayName" : "Unlimited Tabs",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "tabby.unlimited",
+      "referenceName" : "Unlimited Tabs",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21000001",
+      "localizations" : [
+
+      ],
+      "name" : "Tabby Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6740000002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlimited Tabs, plus Talent Search as it arrives.",
+              "displayName" : "Tabby Pro (Monthly)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "tabby.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Tabby Pro Monthly",
+          "subscriptionGroupID" : "21000001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6740000003",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlimited Tabs, plus Talent Search as it arrives.",
+              "displayName" : "Tabby Pro (Yearly)",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "tabby.pro.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Tabby Pro Yearly",
+          "subscriptionGroupID" : "21000001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

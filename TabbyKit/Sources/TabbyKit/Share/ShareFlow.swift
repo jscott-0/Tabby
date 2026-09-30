@@ -14,6 +14,19 @@ public final class ShareFlow {
         case saved(personID: UUID, name: String)
     }
 
+    /// The three things teaching mode asks for before the first import.
+    public enum TeachingItem: CaseIterable, Sendable {
+        case details, tag, note
+
+        public var title: String {
+            switch self {
+            case .details: "Check their details"
+            case .tag: "Add a tag"
+            case .note: "Why you saved them"
+            }
+        }
+    }
+
     public private(set) var phase: Phase = .loading
     public var draft = PersonDraft(platform: .other, handle: "", profileURL: nil)
     public private(set) var parsed: ParsedProfileURL?
@@ -21,6 +34,13 @@ public final class ShareFlow {
     public private(set) var existingName: String?
     public private(set) var isImporting = false
     public var saveError: String?
+    /// The first share-sheet save runs as a short lesson: a checklist and an Import button.
+    public private(set) var isTeaching: Bool
+    /// Set by the UI once the preview has been looked at (scrolled past or edited).
+    public var hasConfirmedDetails = false
+    /// A free account at its limit: this save becomes a locked draft in Waiting to unlock.
+    public private(set) var willLock = false
+    public private(set) var savedAsDraft = false
 
     private let store: TabbyStore
     private let service: EnrichmentService
@@ -38,6 +58,31 @@ public final class ShareFlow {
         self.service = service
         self.sharedDefaults = sharedDefaults
         self.log = log
+        self.isTeaching = !sharedDefaults.hasCompletedFirstSave
+    }
+
+    public func isDone(_ item: TeachingItem) -> Bool {
+        switch item {
+        case .details: hasConfirmedDetails
+        case .tag: !draft.tagIDs.isEmpty
+        case .note: !draft.note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+
+    /// Teaching mode enables Import once the checklist is done; Skip saves without it.
+    public var canSave: Bool {
+        !isTeaching || TeachingItem.allCases.allSatisfy(isDone)
+    }
+
+    public var saveButtonTitle: String {
+        if willLock { return "Save as draft" }
+        return isTeaching ? "Import" : "Save"
+    }
+
+    /// Leaves teaching mode and saves as-is.
+    public func skipTeaching() {
+        isTeaching = false
+        save()
     }
 
     /// Shown above the preview when the link isn't a profile.
@@ -63,6 +108,7 @@ public final class ShareFlow {
         self.parsed = parsed
         draft = PersonDraft(parsed: parsed)
         adoptExisting()
+        willLock = store.wouldLock(draft, entitlement: sharedDefaults.entitlement)
         phase = .editing
         await importMetadata()
     }
@@ -80,6 +126,7 @@ public final class ShareFlow {
         guard phase == .editing else { return }
         draft.apply(result.extraction)
         adoptExisting()
+        willLock = store.wouldLock(draft, entitlement: sharedDefaults.entitlement)
 
         guard draft.avatarData == nil, let avatarURL = draft.avatarURL else { return }
         let avatar = await AvatarProcessor.download(avatarURL, client: service.client)
@@ -103,8 +150,10 @@ public final class ShareFlow {
 
     public func save() {
         do {
-            let outcome = try store.save(draft)
+            let outcome = try store.save(draft, entitlement: sharedDefaults.entitlement)
             sharedDefaults.markExternalWrite()
+            sharedDefaults.hasCompletedFirstSave = true
+            savedAsDraft = outcome.isLockedDraft
             phase = .saved(personID: outcome.person.id, name: outcome.person.title)
         } catch {
             saveError = error.localizedDescription
@@ -116,6 +165,7 @@ public final class ShareFlow {
     public func requestOpen() -> URL? {
         guard case .saved(let id, _) = phase else { return nil }
         sharedDefaults.setPendingOpen(id)
+        if savedAsDraft { sharedDefaults.setPendingPaywall(.slotLimit) }
         return DeepLink.url(forPerson: id)
     }
 }

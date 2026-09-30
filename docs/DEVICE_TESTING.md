@@ -71,6 +71,30 @@ Pin Tabby first: in any app tap Share, scroll the app row to **More**, then Edit
       the hit rate per platform and field. Tap **Share** and send me the report; it's the Phase 0
       table without needing the Mac CLI.
 
+## 4. Onboarding and paywall (Phases 5–6)
+
+To see onboarding again, delete the app (it lives in the App Group, so reinstalling resets it).
+Existing installs that already have people skip onboarding.
+
+- [ ] Welcome → **Continue with Apple** works (needs a paid team; the Sign in with Apple
+      capability is in `project.yml`) and email works too. Both stay on the phone until the backend exists.
+- [ ] Interests: pick categories, then a creator. PLACEHOLDER creators (big brand accounts) until
+      you send me the real list.
+- [ ] **Open @… in Instagram/TikTok** opens the app on that profile. Share it to Tabby: the sheet is in
+      teaching mode (checklist, **Import** disabled until details, a tag and a reason are done,
+      **Skip and save** below).
+- [ ] Back in Tabby: onboarding ends on that person, then the paywall ("Your first Tab is saved!").
+- [ ] Coming back without saving shows "Didn't see Tabby in the share sheet?" with **Paste a profile link instead**.
+- [ ] Free plan: Spaces shows **1 of 1 free Tab used**. Share a second person: the sheet says it
+      saves as a draft, then **Unlock in Tabby** opens the paywall. Drafts sit blurred in
+      **Waiting to unlock** and aren't in search or other Spaces.
+- [ ] **Preview the full app**: ~30 invented people with a Demo banner. **Exit** returns to the
+      paywall, and your real Tabs are unchanged.
+- [ ] Purchases (placeholder products and prices in `Config/Tabby.storekit`, used when running from
+      Xcode): buy Unlimited Tabs, and the drafts unlock. Debug → StoreKit → Manage Transactions to
+      refund or delete, then **Restore** or relaunch to see it go back to free.
+- [ ] Web checkout is off (`TABBY_WEB_CHECKOUT_URL` empty) until the backend grants web purchases.
+
 ## What to send back
 
 - The Extraction log report.

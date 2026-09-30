@@ -17,6 +17,7 @@ struct SpaceDetailView: View {
     @State private var retagging: Person?
     @State private var isBulkTagging = false
     @State private var isEditingRule = false
+    @Environment(\.showPaywall) private var showPaywall
 
     init(ref: SpaceRef) {
         self.ref = ref
@@ -48,8 +49,19 @@ struct SpaceDetailView: View {
             } else {
                 List(selection: $selection) {
                     ForEach(visible) { person in
-                        NavigationLink(value: Route.person(person.id)) {
-                            PersonRow(person: person)
+                        Group {
+                            if person.isLockedDraft {
+                                Button {
+                                    showPaywall(.lockedDraft)
+                                } label: {
+                                    LockedPersonRow(person: person)
+                                }
+                                .buttonStyle(.plain)
+                            } else {
+                                NavigationLink(value: Route.person(person.id)) {
+                                    PersonRow(person: person)
+                                }
+                            }
                         }
                         .accessibilityIdentifier("person-row-\(person.title)")
                         .swipeActions(edge: .trailing) {
@@ -298,6 +310,25 @@ struct PersonRow: View {
             }
         }
         .padding(.vertical, 2)
+    }
+}
+
+/// A draft saved past the free limit: blurred until unlocked.
+struct LockedPersonRow: View {
+    let person: Person
+
+    var body: some View {
+        HStack {
+            PersonRow(person: person)
+                .blur(radius: 5)
+                .accessibilityHidden(true)
+            Spacer()
+            Image(systemName: "lock.fill")
+                .foregroundStyle(.orange)
+        }
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Locked draft. Unlock to see them.")
     }
 }
 

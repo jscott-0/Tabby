@@ -10,6 +10,8 @@ public struct SaveOutcome {
     public let person: Person
     /// The profile was already in Tabby and the save merged into it.
     public let wasExisting: Bool
+    /// Saved past the free limit, as a locked draft.
+    public var isLockedDraft: Bool { person.isLockedDraft }
 }
 
 /// Every write to the store goes through here, so dedup, tag bookkeeping and
@@ -58,10 +60,36 @@ public final class TabbyStore {
         return (try? context.fetch(descriptor))?.first
     }
 
+    /// People that count against the free limit.
+    public func unlockedPeopleCount() -> Int {
+        (try? context.fetchCount(FetchDescriptor<Person>(predicate: #Predicate { !$0.isLockedDraft }))) ?? 0
+    }
+
+    public func lockedDraftCount() -> Int {
+        (try? context.fetchCount(FetchDescriptor<Person>(predicate: #Predicate { $0.isLockedDraft }))) ?? 0
+    }
+
+    /// Whether saving this draft now would make a locked draft instead of a Person.
+    public func wouldLock(_ draft: PersonDraft, entitlement: Entitlement) -> Bool {
+        existingPerson(for: draft) == nil
+            && !PaywallPolicy.canAddPerson(unlockedCount: unlockedPeopleCount(), entitlement: entitlement)
+    }
+
+    /// After a purchase: every draft becomes a normal Person.
+    public func unlockAllDrafts() {
+        let descriptor = FetchDescriptor<Person>(predicate: #Predicate { $0.isLockedDraft })
+        for person in (try? context.fetch(descriptor)) ?? [] {
+            person.isLockedDraft = false
+        }
+        persist()
+    }
+
     /// Creates a Person, or merges into the one that already has this profile:
     /// non-empty fields win, tags become `draft.tagIDs`, and a new note is appended with the date.
+    /// A new Person past the free limit (`entitlement`) is saved as a locked draft; merges never are.
     @discardableResult
-    public func save(_ draft: PersonDraft, at date: Date = .now) throws -> SaveOutcome {
+    public func save(_ draft: PersonDraft, entitlement: Entitlement = .pro, at date: Date = .now) throws -> SaveOutcome {
+        let lockNew = !PaywallPolicy.canAddPerson(unlockedCount: unlockedPeopleCount(), entitlement: entitlement)
         let existingAccount = draft.dedupKey.flatMap { self.account(dedupKey: $0) }
         let person: Person
         let account: Account
@@ -77,6 +105,7 @@ public final class TabbyStore {
             context.insert(person)
             context.insert(account)
             account.person = person
+            person.isLockedDraft = lockNew
             wasExisting = false
         }
 
