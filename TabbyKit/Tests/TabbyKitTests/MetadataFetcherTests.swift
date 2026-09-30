@@ -17,11 +17,14 @@ private final class StubHTTPClient: HTTPClient, @unchecked Sendable {
     }
 
     func get(_ url: URL) async throws -> HTTPResponse {
-        lock.lock()
-        _requests.append(url)
-        lock.unlock()
+        record(url)
         guard let response = responses[url.absoluteString] else { throw URLError(.notConnectedToInternet) }
         return response
+    }
+
+    private func record(_ url: URL) {
+        lock.lock(); defer { lock.unlock() }
+        _requests.append(url)
     }
 }
 

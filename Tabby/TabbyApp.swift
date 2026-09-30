@@ -1,44 +1,52 @@
+import SwiftData
 import SwiftUI
 import TabbyKit
 
 @main
 struct TabbyApp: App {
+    private let container: ModelContainer
+
+    init() {
+        do {
+            container = try TabbyContainer.make()
+        } catch {
+            fatalError("Could not open the Tabby store: \(error)")
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
+        .modelContainer(container)
     }
 }
 
-/// Phase 0 placeholder: paste a profile link to see the tier-1 parse. Replaced by Spaces in Phase 1.
-struct ContentView: View {
-    @State private var text = ""
+enum Route: Hashable {
+    case space(SpaceRef)
+    case person(UUID)
+    case tags
+}
 
-    private var parsed: ParsedProfileURL? {
-        ProfileURLParser.firstURL(in: text).map(ProfileURLParser.parse)
-    }
+/// My Tabs: a NavigationStack rooted at Spaces. `tabby://person/{id}` opens a Person.
+struct RootView: View {
+    @State private var path: [Route] = []
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section("Paste a profile link") {
-                    TextField("https://www.instagram.com/…", text: $text)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                }
-                if let parsed {
-                    Section("Parsed") {
-                        LabeledContent("Platform", value: parsed.platform.rawValue)
-                        LabeledContent("Handle", value: parsed.handle ?? "—")
-                        LabeledContent("Kind", value: String(describing: parsed.kind))
+        NavigationStack(path: $path) {
+            SpacesView()
+                .navigationDestination(for: Route.self) { route in
+                    switch route {
+                    case .space(let ref): SpaceDetailView(ref: ref)
+                    case .person(let id): PersonDetailView(personID: id)
+                    case .tags: TagsView()
                     }
                 }
+        }
+        .onOpenURL { url in
+            if let id = DeepLink.personID(from: url) {
+                path = [.person(id)]
             }
-            .navigationTitle("Tabby")
         }
     }
-}
-
-#Preview {
-    ContentView()
 }
