@@ -37,6 +37,8 @@ final class AppModel {
     var path: [Route] = []
 
     @ObservationIgnored private var lastSeenExternalWrite: Date?
+    @ObservationIgnored private var retryTask: Task<Void, Never>?
+    @ObservationIgnored private var retryRun = UUID()
     private let sharedDefaults = SharedDefaults.shared
 
     init() {
@@ -49,17 +51,32 @@ final class AppModel {
     }
 
     /// The share extension saves from another process, which this app's context doesn't see.
-    /// Reopen the store when it has written since we last looked, then show any pending "Open in Tabby".
+    /// Reopen the store when it has written since we last looked, show any pending "Open in Tabby",
+    /// then retry profiles whose extraction didn't complete.
     func becameActive() {
         if let write = sharedDefaults.lastExternalWrite, write != lastSeenExternalWrite {
             lastSeenExternalWrite = write
             if let fresh = try? TabbyContainer.make() {
+                retryTask?.cancel()
+                retryTask = nil
                 container = fresh
                 storeGeneration += 1
             }
         }
         if let id = sharedDefaults.takePendingOpen() {
             open(personID: id)
+        }
+        retryIncompleteProfiles()
+    }
+
+    private func retryIncompleteProfiles() {
+        guard retryTask == nil else { return }
+        let queue = RetryQueue(context: container.mainContext, service: EnrichmentService(renderer: WebPageRenderer()))
+        let run = UUID()
+        retryRun = run
+        retryTask = Task { [weak self] in
+            await queue.run()
+            if self?.retryRun == run { self?.retryTask = nil }
         }
     }
 

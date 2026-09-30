@@ -38,6 +38,8 @@ struct AddPersonView: View {
                 if let draft = Binding($draft) {
                     Section {
                         HStack {
+                            AvatarView(name: draft.wrappedValue.displayName, imageData: draft.wrappedValue.avatarData,
+                                       imageURL: draft.wrappedValue.avatarURL, size: 36)
                             PlatformBadge(platform: draft.wrappedValue.platform, showsName: true)
                             Text(handleLabel(draft.wrappedValue)).lineLimit(1)
                             Spacer()
@@ -139,9 +141,11 @@ struct AddPersonView: View {
         guard target.kind == .profile || target.kind == .shortLink else { return }
         isImporting = true
         defer { isImporting = false }
-        let result = await MetadataFetcher().fetch(target)
+        let result = await EnrichmentService().enrich(target)
+        ExtractionLog.shared.append(ExtractionAttempt(result.extraction, source: .addSheet))
         guard !Task.isCancelled, var current = draft else { return }
-        current.apply(result)
+        current.apply(result.extraction)
+        if current.avatarData == nil { current.avatarData = result.avatarData }
         if existing == nil, let match = store.existingPerson(for: current) {
             existing = match
             preselect(match, into: &current)

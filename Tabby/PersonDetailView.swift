@@ -9,6 +9,7 @@ struct PersonDetailView: View {
     @Query private var matches: [Person]
     @State private var isEditing = false
     @State private var isConfirmingDelete = false
+    @State private var isRefetching = false
 
     init(personID: UUID) {
         _matches = Query(filter: #Predicate<Person> { $0.id == personID })
@@ -21,11 +22,21 @@ struct PersonDetailView: View {
             PersonDetailContent(person: person)
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Menu {
-                            Button { isEditing = true } label: { Label("Edit", systemImage: "pencil") }
-                            Button(role: .destructive) { isConfirmingDelete = true } label: { Label("Delete", systemImage: "trash") }
-                        } label: {
-                            Label("More", systemImage: "ellipsis.circle")
+                        if isRefetching {
+                            ProgressView()
+                        } else {
+                            Menu {
+                                Button { isEditing = true } label: { Label("Edit", systemImage: "pencil") }
+                                Button {
+                                    Task { await refetch(person) }
+                                } label: {
+                                    Label("Re-fetch details", systemImage: "arrow.clockwise")
+                                }
+                                .disabled(person.primaryAccount.map { $0.platform == .other } ?? true)
+                                Button(role: .destructive) { isConfirmingDelete = true } label: { Label("Delete", systemImage: "trash") }
+                            } label: {
+                                Label("More", systemImage: "ellipsis.circle")
+                            }
                         }
                     }
                 }
@@ -43,6 +54,21 @@ struct PersonDetailView: View {
             ContentUnavailableView("Not found", systemImage: "person.crop.circle.badge.questionmark",
                                    description: Text("This person may have been deleted."))
         }
+    }
+}
+
+extension PersonDetailView {
+    /// An explicit re-fetch: tiers 2–4 plus the avatar, replacing fetched fields (never the name,
+    /// note or tags) and resetting automatic retries.
+    private func refetch(_ person: Person) async {
+        guard let account = person.primaryAccount,
+              let parsed = ProfileURLParser.profile(platform: account.platform, handle: account.handle) else { return }
+        isRefetching = true
+        defer { isRefetching = false }
+        let result = await EnrichmentService(renderer: WebPageRenderer()).enrich(parsed)
+        ExtractionLog.shared.append(ExtractionAttempt(result.extraction, source: .refetch))
+        guard !account.isDeleted else { return }
+        store.applyEnrichment(result, to: account, overwrite: true)
     }
 }
 
