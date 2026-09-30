@@ -28,6 +28,7 @@ public final class RetryQueue {
 
     func isDue(_ account: Account, now: Date) -> Bool {
         guard account.platform != .other, !account.handle.isEmpty, account.person != nil else { return false }
+        guard !SampleData.isSampleHandle(account.handle) else { return false }
         guard account.fetchAttempts < Self.maxAttempts else { return false }
         if let last = account.lastAttemptAt, now.timeIntervalSince(last) < Self.minimumInterval { return false }
         let missingAvatar = account.person?.avatarData == nil && account.avatarURL != nil

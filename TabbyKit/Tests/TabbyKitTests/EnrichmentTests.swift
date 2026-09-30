@@ -139,6 +139,13 @@ final class EnrichmentTests: XCTestCase {
         XCTAssertEqual(account.person?.needsInfo, true, "still shown in Needs info")
     }
 
+    func testSampleProfilesAreNeverFetched() throws {
+        let context = try makeContext()
+        SampleData.seed(into: context)
+        let queue = RetryQueue(context: context, service: EnrichmentService(client: StubHTTPClient([:])), log: nil)
+        XCTAssertTrue(queue.candidates().isEmpty, "sample people in Needs info must not trigger real requests")
+    }
+
     func testUserEditsSurviveEnrichmentButRefetchOverwrites() throws {
         let context = try makeContext()
         let store = TabbyStore(context: context)
