@@ -118,9 +118,11 @@ final class TabbyUITests: XCTestCase {
 
     // MARK: Onboarding and paywall
 
-    /// Scrolls until the element can be tapped (Form rows below the fold aren't).
+    /// Scrolls until the element can be tapped and sits clear of the bottom button bar
+    /// (Form rows below the fold don't exist yet, and rows under the bar report hittable).
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
-        for _ in 0..<4 where !(element.exists && element.isHittable) {
+        for _ in 0..<6 {
+            if element.exists, element.isHittable, element.frame.maxY < app.frame.maxY - 200 { return }
             app.swipeUp()
         }
     }

@@ -257,6 +257,7 @@ struct DemoBanner: View {
             Image(systemName: "sparkles")
             VStack(alignment: .leading, spacing: 1) {
                 Text("Demo").font(.subheadline.weight(.semibold))
+                    .accessibilityIdentifier("demo-banner")
                 Text("Sample data. Nothing is saved.").font(.caption)
             }
             Spacer()
@@ -275,6 +276,5 @@ struct DemoBanner: View {
         .padding(.horizontal)
         .padding(.vertical, 8)
         .background(Color.accentColor)
-        .accessibilityIdentifier("demo-banner")
     }
 }
