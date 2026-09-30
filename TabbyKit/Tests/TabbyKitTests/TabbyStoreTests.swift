@@ -331,6 +331,12 @@ final class TabbyStoreTests: XCTestCase {
         let hardwareDesigners = try XCTUnwrap(store.allSpaces().first { $0.name == "Hardware designers" })
         XCTAssertEqual(Set(facts.members(of: hardwareDesigners.rule).map(\.displayName)), ["Priya Castellan", "Arjun Mehta"])
         XCTAssertEqual(facts.members(of: .needsInfo).count, 2)
+
+        SampleData.seed(into: container.mainContext)
+        XCTAssertEqual(store.allPeople().count, 20, "seeding again merges instead of duplicating")
+        XCTAssertEqual(store.allSpaces().count, 5)
+        XCTAssertTrue(SampleData.isSampleHandle("tabby_sample_dev"))
+        XCTAssertFalse(SampleData.isSampleHandle("devbuilds"))
     }
 
     func testDeepLinkRoundTrip() {
