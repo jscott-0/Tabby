@@ -2,16 +2,19 @@
 
 Save people from LinkedIn, Instagram and TikTok to a personal rolodex straight from the iOS share sheet, then organize them into tag-driven Spaces.
 
-Status: Phase 0 (scaffold + extraction spike). See [`docs/PLAN.md`](docs/PLAN.md) for the full build plan.
+Status: Phases 0–3 (extraction, data layer and app, share extension, enrichment) awaiting device testing. See [`docs/PLAN.md`](docs/PLAN.md) for the full build plan.
 
 ## Getting started (macOS, Xcode 16+)
 
 ```sh
 brew install xcodegen
+echo 'DEVELOPMENT_TEAM = YOUR_TEAM_ID' > Config/Local.xcconfig   # gitignored; see Config/Tabby.xcconfig
 xcodegen generate
 open Tabby.xcodeproj
 swift test --package-path TabbyKit
 ```
+
+Running on a phone: follow [`docs/DEVICE_TESTING.md`](docs/DEVICE_TESTING.md), the checklist for the phase gates CI can't cover.
 
 ## Phase 0 spike
 

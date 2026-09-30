@@ -11,3 +11,10 @@ Tabby/Info.plist
 TabbyShare/Info.plist
 Tabby/Tabby.entitlements
 TabbyShare/TabbyShare.entitlements
+
+# Personal signing overrides (see Config/Tabby.xcconfig)
+Config/Local.xcconfig
+
+# CI / local test output
+*.xcresult
+screenshots/

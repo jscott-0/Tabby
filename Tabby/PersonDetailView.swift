@@ -65,7 +65,7 @@ extension PersonDetailView {
               let parsed = ProfileURLParser.profile(platform: account.platform, handle: account.handle) else { return }
         isRefetching = true
         defer { isRefetching = false }
-        let result = await EnrichmentService(renderer: WebPageRenderer()).enrich(parsed)
+        let result = await AppServices.enrichment(renderer: WebPageRenderer()).enrich(parsed)
         ExtractionLog.shared.append(ExtractionAttempt(result.extraction, source: .refetch))
         guard !account.isDeleted else { return }
         store.applyEnrichment(result, to: account, overwrite: true)

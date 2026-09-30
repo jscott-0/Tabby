@@ -1,0 +1,12 @@
+// Shared build settings. Put personal overrides in Config/Local.xcconfig (gitignored), e.g.
+//
+//   DEVELOPMENT_TEAM = ABCDE12345
+//   TABBY_BUNDLE_ID = com.yourname.tabby   // if com.tabbyapp.tabby is taken
+//
+// The share extension, the App Group and the UI tests all derive from TABBY_BUNDLE_ID.
+
+TABBY_BUNDLE_ID = com.tabbyapp.tabby
+TABBY_APP_GROUP = group.$(TABBY_BUNDLE_ID)
+DEVELOPMENT_TEAM =
+
+#include? "Local.xcconfig"

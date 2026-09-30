@@ -1,16 +1,20 @@
 # XcodeGen spec. Run `xcodegen generate` to create Tabby.xcodeproj (not committed).
+# Signing team and bundle ID live in Config/Tabby.xcconfig, overridable in Config/Local.xcconfig.
 name: Tabby
 options:
   bundleIdPrefix: com.tabbyapp
   deploymentTarget:
     iOS: "18.0"
   createIntermediateGroups: true
+configFiles:
+  Debug: Config/Tabby.xcconfig
+  Release: Config/Tabby.xcconfig
 settings:
   base:
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
-    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
 packages:
   TabbyKit:
     path: TabbyKit
@@ -29,16 +33,17 @@ targets:
         CFBundleDisplayName: Tabby
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        TabbyAppGroup: $(TABBY_APP_GROUP)
         CFBundleURLTypes:
-          - CFBundleURLName: com.tabbyapp.tabby
+          - CFBundleURLName: $(PRODUCT_BUNDLE_IDENTIFIER)
             CFBundleURLSchemes: [tabby]
     entitlements:
       path: Tabby/Tabby.entitlements
       properties:
-        com.apple.security.application-groups: [group.com.tabbyapp.tabby]
+        com.apple.security.application-groups: [$(TABBY_APP_GROUP)]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.tabbyapp.tabby
+        PRODUCT_BUNDLE_IDENTIFIER: $(TABBY_BUNDLE_ID)
         TARGETED_DEVICE_FAMILY: "1"
   TabbyShare:
     type: app-extension
@@ -51,6 +56,7 @@ targets:
       path: TabbyShare/Info.plist
       properties:
         CFBundleDisplayName: Tabby
+        TabbyAppGroup: $(TABBY_APP_GROUP)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
@@ -61,10 +67,22 @@ targets:
     entitlements:
       path: TabbyShare/TabbyShare.entitlements
       properties:
-        com.apple.security.application-groups: [group.com.tabbyapp.tabby]
+        com.apple.security.application-groups: [$(TABBY_APP_GROUP)]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.tabbyapp.tabby.share
+        PRODUCT_BUNDLE_IDENTIFIER: $(TABBY_BUNDLE_ID).share
+        TARGETED_DEVICE_FAMILY: "1"
+  TabbyUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [TabbyUITests]
+    dependencies:
+      - target: Tabby
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(TABBY_BUNDLE_ID).uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Tabby
         TARGETED_DEVICE_FAMILY: "1"
 schemes:
   Tabby:
@@ -74,3 +92,7 @@ schemes:
         TabbyShare: all
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - TabbyUITests

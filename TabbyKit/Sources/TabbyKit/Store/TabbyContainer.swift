@@ -4,7 +4,15 @@ import SwiftData
 
 /// The one SwiftData store, shared by the app and the share extension through the App Group.
 public enum TabbyContainer {
-    public static let appGroupID = "group.com.tabbyapp.tabby"
+    /// From the `TabbyAppGroup` Info.plist key (set from `TABBY_APP_GROUP` in Config/Tabby.xcconfig),
+    /// so a bundle ID change is one line. Falls back to the default outside the app (tests, CLI).
+    public static let appGroupID: String = {
+        if let value = Bundle.main.object(forInfoDictionaryKey: "TabbyAppGroup") as? String,
+           !value.isEmpty, !value.contains("$(") {
+            return value
+        }
+        return "group.com.tabbyapp.tabby"
+    }()
 
     public static let schema = Schema([Person.self, Account.self, Tag.self, Space.self])
 
