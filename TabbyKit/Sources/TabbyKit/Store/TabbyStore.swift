@@ -17,9 +17,12 @@ public struct SaveOutcome {
 @MainActor
 public final class TabbyStore {
     public let context: ModelContext
+    /// A context doesn't keep its container alive, and using it after the container is freed traps.
+    private let container: ModelContainer
 
     public init(context: ModelContext) {
         self.context = context
+        self.container = context.container
     }
 
     /// Saves pending changes, logging instead of throwing.

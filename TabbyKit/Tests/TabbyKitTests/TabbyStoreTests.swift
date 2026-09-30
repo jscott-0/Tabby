@@ -4,8 +4,17 @@ import XCTest
 
 @MainActor
 final class TabbyStoreTests: XCTestCase {
+    /// Containers must outlive their contexts; XCTest makes a new instance per test.
+    private var containers: [ModelContainer] = []
+
+    private func makeContainer() throws -> ModelContainer {
+        let container = try TabbyContainer.make(inMemory: true)
+        containers.append(container)
+        return container
+    }
+
     private func makeStore() throws -> TabbyStore {
-        TabbyStore(context: try TabbyContainer.make(inMemory: true).mainContext)
+        TabbyStore(context: try makeContainer().mainContext)
     }
 
     private func makeDraft(_ platform: Platform, _ handle: String, name: String = "", tags: Set<UUID> = [], note: String = "") -> PersonDraft {
@@ -313,7 +322,7 @@ final class TabbyStoreTests: XCTestCase {
     // MARK: Sample data
 
     func testSampleDataSeeds() throws {
-        let container = try TabbyContainer.make(inMemory: true)
+        let container = try makeContainer()
         SampleData.seed(into: container.mainContext)
         let store = TabbyStore(context: container.mainContext)
         XCTAssertEqual(store.allPeople().count, 20)
