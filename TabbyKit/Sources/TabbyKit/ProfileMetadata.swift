@@ -1,8 +1,8 @@
 import Foundation
 
 /// Profile fields gathered by extraction tiers 2+, with the tier each field came from.
-public struct ProfileMetadata: Equatable, Sendable {
-    public enum Field: String, CaseIterable, Sendable {
+public struct ProfileMetadata: Codable, Equatable, Sendable {
+    public enum Field: String, CaseIterable, Codable, Sendable {
         case name, headline, bio, avatarURL, links, followerCount
     }
 
