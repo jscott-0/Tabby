@@ -224,19 +224,21 @@ struct RootView: View {
     }
 
     private var stack: some View {
-        NavigationStack(path: $model.path) {
-            SpacesView()
-                .navigationDestination(for: Route.self) { route in
-                    switch route {
-                    case .space(let ref): SpaceDetailView(ref: ref)
-                    case .person(let id): PersonDetailView(personID: id)
-                    case .tags: TagsView()
-                    }
-                }
-        }
-        .safeAreaInset(edge: .top, spacing: 0) {
+        // Above the stack, not a safe-area inset on it: iOS 26 draws the glass navigation bar under
+        // top insets, which put the banner over the toolbar buttons.
+        VStack(spacing: 0) {
             if model.isInDemo {
                 DemoBanner(onUnlock: { model.paywall = .demo }, onExit: { model.exitDemo() })
+            }
+            NavigationStack(path: $model.path) {
+                SpacesView()
+                    .navigationDestination(for: Route.self) { route in
+                        switch route {
+                        case .space(let ref): SpaceDetailView(ref: ref)
+                        case .person(let id): PersonDetailView(personID: id)
+                        case .tags: TagsView()
+                        }
+                    }
             }
         }
         .onOpenURL { url in
@@ -264,6 +266,7 @@ struct DemoBanner: View {
             GlassGroup {
                 HStack(spacing: 6) {
                     Button("Unlock", action: onUnlock)
+                        .fontWeight(.semibold)
                         .primaryActionStyle()
                         .tint(.white)
                         .foregroundStyle(Color.accentColor)

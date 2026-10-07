@@ -175,6 +175,9 @@ final class TabbyUITests: XCTestCase {
         element("paywall-demo", in: app).tap()
         XCTAssertTrue(element("demo-banner", in: app).waitForExistence(timeout: 10))
         XCTAssertTrue(element("space-tile-Hardware designers", in: app).waitForExistence(timeout: 5))
+        let add = app.buttons["Add"].firstMatch
+        XCTAssertTrue(add.exists)
+        XCTAssertLessThanOrEqual(element("demo-banner", in: app).frame.maxY, add.frame.minY, "the banner sits above the toolbar")
         screenshot("16-demo", app)
 
         element("demo-exit", in: app).tap()
