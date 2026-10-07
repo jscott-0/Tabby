@@ -25,7 +25,7 @@ struct ShareSheetView: View {
                     }
                     ToolbarItem(placement: .cancellationAction) {
                         if !isSaved {
-                            Button("Cancel", action: onClose)
+                            SheetCloseButton(action: onClose)
                         }
                     }
                 }
@@ -94,7 +94,7 @@ struct ShareSheetView: View {
                     .accessibilityIdentifier("share-note")
             }
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+        .floatingBottomBar {
             VStack(spacing: 6) {
                 Button {
                     flow.save()
@@ -103,7 +103,7 @@ struct ShareSheetView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .primaryActionStyle()
                 .controlSize(.large)
                 .disabled(!flow.canSave)
                 .accessibilityIdentifier("share-save")
@@ -115,7 +115,6 @@ struct ShareSheetView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 10)
-            .background(.bar)
         }
         .alert("Couldn't save", isPresented: Binding(isPresent: $flow.saveError)) {
             Button("OK", role: .cancel) {}
@@ -208,7 +207,7 @@ struct TeachingChecklist: View {
                     Spacer()
                     if item == .details, !done {
                         Button("Looks right") { flow.hasConfirmedDetails = true }
-                            .buttonStyle(.bordered)
+                            .secondaryActionStyle()
                             .controlSize(.small)
                             .accessibilityIdentifier("share-confirm-details")
                     }
@@ -256,7 +255,7 @@ struct SavedView: View {
                 .font(.headline)
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
+            .primaryActionStyle()
             .controlSize(.large)
             Button("Done", action: onDone)
                 .font(.headline)

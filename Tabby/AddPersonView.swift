@@ -80,10 +80,10 @@ struct AddPersonView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    SheetCloseButton { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(willLock ? "Save draft" : "Save", action: save)
+                    SheetConfirmButton(title: willLock ? "Save draft" : "Save", action: save)
                         .disabled(draft == nil)
                 }
             }

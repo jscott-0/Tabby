@@ -76,10 +76,10 @@ struct SpaceEditorView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    SheetCloseButton { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save)
+                    SheetConfirmButton(title: "Save", action: save)
                         .disabled(!draft.canSave)
                 }
             }
@@ -204,7 +204,7 @@ struct ReorderSpacesView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+                    SheetConfirmButton(title: "Done") { dismiss() }
                 }
             }
         }

@@ -16,7 +16,7 @@ Spec: "Tabby — iOS Spec for Claude Code" doc. Build plan and phase gates: `doc
 - `xcodegen generate && open Tabby.xcodeproj`
 - `swift run --package-path TabbyKit tabby-extract --file urls.txt --fixtures TabbyKit/Tests/TabbyKitTests/Fixtures`
 
-CI (`.github/workflows/ci.yml`) runs the package tests, a simulator build, and the UI tests on a simulator; cloud sessions have no Swift toolchain, so CI is the compile check. The UI test job prints each screenshot as a base64 JPEG between `SCREENSHOT_BEGIN <name>` / `SCREENSHOT_END` lines in its log (also uploaded as the `screenshots` artifact).
+CI (`.github/workflows/ci.yml`, macOS 26 runner, Xcode 26 / iOS 26 SDK) runs the package tests, a simulator build, and the UI tests on a simulator; cloud sessions have no Swift toolchain, so CI is the compile check. The UI test job prints each screenshot as a base64 JPEG between `SCREENSHOT_BEGIN <name>` / `SCREENSHOT_END` lines in its log (also uploaded as the `screenshots` artifact).
 
 ## Rules
 - No third-party packages without asking (XcodeGen is an approved build tool, not a dependency).
@@ -26,3 +26,7 @@ CI (`.github/workflows/ci.yml`) runs the package tests, a simulator build, and t
 - SwiftData: no `@Attribute(.unique)`, all properties optional or defaulted (CloudKit-ready); dedup in code by platform + lowercased handle.
 - Bundle IDs: `com.tabbyapp.tabby`, `com.tabbyapp.tabby.share`; App Group `group.com.tabbyapp.tabby`. Minimum iOS 18.
 - Out of scope until usage data says otherwise: Talent Spotter AI chat, suggested profiles.
+
+## UI style
+- Liquid Glass on iOS 26 with iOS 18 fallbacks, all through `SharedUI/GlassStyle.swift`: `primaryActionStyle()` / `secondaryActionStyle()` for buttons, `glassSurface(in:tint:)` for chips and banners, `floatingBottomBar` / `floatingTopBar` instead of `safeAreaInset` + `.bar`, `SheetCloseButton` / `SheetConfirmButton` in sheet toolbars. Don't call `.glassEffect` or `.buttonStyle(.glass…)` directly.
+- Glass is for controls and navigation that float over content; content cards (Space tiles, paywall options) stay solid.

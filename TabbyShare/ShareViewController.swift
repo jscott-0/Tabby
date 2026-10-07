@@ -95,7 +95,7 @@ private struct StoreErrorView: View {
                                    description: Text("Open the Tabby app once, then try sharing again."))
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("Close", action: onClose)
+                        SheetCloseButton(title: "Close", action: onClose)
                     }
                 }
         }

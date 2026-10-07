@@ -224,19 +224,21 @@ struct RootView: View {
     }
 
     private var stack: some View {
-        NavigationStack(path: $model.path) {
-            SpacesView()
-                .navigationDestination(for: Route.self) { route in
-                    switch route {
-                    case .space(let ref): SpaceDetailView(ref: ref)
-                    case .person(let id): PersonDetailView(personID: id)
-                    case .tags: TagsView()
-                    }
-                }
-        }
-        .safeAreaInset(edge: .top, spacing: 0) {
+        // Above the stack, not a safe-area inset on it: iOS 26 draws the glass navigation bar under
+        // top insets, which put the banner over the toolbar buttons.
+        VStack(spacing: 0) {
             if model.isInDemo {
                 DemoBanner(onUnlock: { model.paywall = .demo }, onExit: { model.exitDemo() })
+            }
+            NavigationStack(path: $model.path) {
+                SpacesView()
+                    .navigationDestination(for: Route.self) { route in
+                        switch route {
+                        case .space(let ref): SpaceDetailView(ref: ref)
+                        case .person(let id): PersonDetailView(personID: id)
+                        case .tags: TagsView()
+                        }
+                    }
             }
         }
         .onOpenURL { url in
@@ -261,20 +263,27 @@ struct DemoBanner: View {
                 Text("Sample data. Nothing is saved.").font(.caption)
             }
             Spacer()
-            Button("Unlock", action: onUnlock)
-                .buttonStyle(.borderedProminent)
-                .tint(.white)
-                .foregroundStyle(Color.accentColor)
+            GlassGroup {
+                HStack(spacing: 6) {
+                    Button("Unlock", action: onUnlock)
+                        .fontWeight(.semibold)
+                        .primaryActionStyle()
+                        .tint(.white)
+                        .foregroundStyle(Color.accentColor)
+                    Button("Exit", action: onExit)
+                        .secondaryActionStyle()
+                        .tint(.white)
+                        .accessibilityIdentifier("demo-exit")
+                }
                 .controlSize(.small)
-            Button("Exit", action: onExit)
-                .buttonStyle(.bordered)
-                .tint(.white)
-                .controlSize(.small)
-                .accessibilityIdentifier("demo-exit")
+            }
         }
         .foregroundStyle(.white)
-        .padding(.horizontal)
+        .padding(.leading, 16)
+        .padding(.trailing, 8)
         .padding(.vertical, 8)
-        .background(Color.accentColor)
+        .glassSurface(in: Capsule(), tint: .accentColor)
+        .padding(.horizontal, 12)
+        .padding(.bottom, 4)
     }
 }
