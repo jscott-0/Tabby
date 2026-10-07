@@ -35,7 +35,7 @@ struct PersonDetailView: View {
                                 .disabled(person.primaryAccount.map { $0.platform == .other } ?? true)
                                 Button(role: .destructive) { isConfirmingDelete = true } label: { Label("Delete", systemImage: "trash") }
                             } label: {
-                                Label("More", systemImage: "ellipsis.circle")
+                                Label("More", systemImage: Symbols.more)
                             }
                         }
                     }
@@ -180,7 +180,7 @@ private struct AccountRow: View {
             Spacer(minLength: 8)
             if let url = account.profileURL {
                 Button("Open in app") { openURL(url) }
-                    .buttonStyle(.bordered)
+                    .secondaryActionStyle()
                     .controlSize(.small)
                     .fixedSize()
             }
@@ -232,10 +232,10 @@ struct PersonEditorView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    SheetCloseButton { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    SheetConfirmButton(title: "Save") {
                         store.update(person, with: draft)
                         dismiss()
                     }

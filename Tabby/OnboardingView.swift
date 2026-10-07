@@ -88,19 +88,18 @@ private struct StepScaffold<Content: View>: View {
                 .padding(24)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+        .floatingBottomBar {
             Button(action: action) {
                 Text(buttonTitle)
                     .font(.headline)
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
+            .primaryActionStyle()
             .controlSize(.large)
             .disabled(!isEnabled)
             .accessibilityIdentifier("onboarding-continue")
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
-            .background(.background)
         }
     }
 }
@@ -258,7 +257,7 @@ private struct InterestsStep: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .foregroundStyle(selected ? Color.white : Color.primary)
-                .background(Capsule().fill(selected ? Color.accentColor : Color(.secondarySystemBackground)))
+                .glassSurface(in: Capsule(), tint: selected ? .accentColor : nil, interactive: true)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("interest-\(category.id)")
@@ -348,7 +347,7 @@ private struct AwaitingFirstSaveStep: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                     Button("Paste a profile link instead", action: onPasteLink)
-                        .buttonStyle(.bordered)
+                        .secondaryActionStyle()
                         .accessibilityIdentifier("onboarding-paste-link")
                 }
                 .padding(16)

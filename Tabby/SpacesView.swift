@@ -252,7 +252,10 @@ struct FreePlanBanner: View {
                 Spacer()
                 Text("Unlock")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.tint)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .glassSurface(in: Capsule(), tint: .accentColor)
             }
             .padding(12)
             .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color(.secondarySystemGroupedBackground)))
@@ -279,7 +282,7 @@ struct FirstLaunchCard: View {
             Button(action: onAddManually) {
                 Label("Or paste a profile link", systemImage: "link")
             }
-            .buttonStyle(.bordered)
+            .secondaryActionStyle()
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)

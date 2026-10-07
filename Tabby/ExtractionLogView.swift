@@ -32,7 +32,7 @@ struct ExtractionLogView: View {
             .refreshable { attempts = ExtractionLog.shared.attempts }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
+                    SheetCloseButton(title: "Done") { dismiss() }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     ShareLink(item: report) {

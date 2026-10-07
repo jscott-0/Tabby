@@ -167,7 +167,7 @@ struct MergeTagSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    SheetCloseButton { dismiss() }
                 }
             }
         }

@@ -261,20 +261,26 @@ struct DemoBanner: View {
                 Text("Sample data. Nothing is saved.").font(.caption)
             }
             Spacer()
-            Button("Unlock", action: onUnlock)
-                .buttonStyle(.borderedProminent)
-                .tint(.white)
-                .foregroundStyle(Color.accentColor)
+            GlassGroup {
+                HStack(spacing: 6) {
+                    Button("Unlock", action: onUnlock)
+                        .primaryActionStyle()
+                        .tint(.white)
+                        .foregroundStyle(Color.accentColor)
+                    Button("Exit", action: onExit)
+                        .secondaryActionStyle()
+                        .tint(.white)
+                        .accessibilityIdentifier("demo-exit")
+                }
                 .controlSize(.small)
-            Button("Exit", action: onExit)
-                .buttonStyle(.bordered)
-                .tint(.white)
-                .controlSize(.small)
-                .accessibilityIdentifier("demo-exit")
+            }
         }
         .foregroundStyle(.white)
-        .padding(.horizontal)
+        .padding(.leading, 16)
+        .padding(.trailing, 8)
         .padding(.vertical, 8)
-        .background(Color.accentColor)
+        .glassSurface(in: Capsule(), tint: .accentColor)
+        .padding(.horizontal, 12)
+        .padding(.bottom, 4)
     }
 }

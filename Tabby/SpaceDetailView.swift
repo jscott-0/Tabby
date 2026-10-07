@@ -87,10 +87,10 @@ struct SpaceDetailView: View {
                                                description: Text("No one here has all the selected filters."))
                     }
                 }
-                .safeAreaInset(edge: .top, spacing: 0) {
+                .floatingTopBar {
                     FilterBar(people: members, tagFilter: $tagFilter, platformFilter: $platformFilter)
                 }
-                .safeAreaInset(edge: .bottom, spacing: 0) {
+                .floatingBottomBar {
                     if editMode.isEditing {
                         selectionBar(visible: visible)
                     }
@@ -118,7 +118,7 @@ struct SpaceDetailView: View {
                             Button { isEditingRule = true } label: { Label("Edit rule", systemImage: "slider.horizontal.3") }
                         }
                     } label: {
-                        Label("Options", systemImage: "ellipsis.circle")
+                        Label("Options", systemImage: Symbols.more)
                     }
                 }
             }
@@ -159,25 +159,27 @@ struct SpaceDetailView: View {
     }
 
     private func selectionBar(visible: [Person]) -> some View {
-        HStack {
-            Button("Select all") { selection = Set(visible.map(\.id)) }
-            Spacer()
-            Button {
-                isBulkTagging = true
-            } label: {
-                Label("Tag \(selection.count)", systemImage: "tag")
+        GlassGroup {
+            HStack {
+                Button("Select all") { selection = Set(visible.map(\.id)) }
+                Spacer()
+                Button {
+                    isBulkTagging = true
+                } label: {
+                    Label("Tag \(selection.count)", systemImage: "tag")
+                }
+                .disabled(selection.isEmpty)
+                Button(role: .destructive) {
+                    store.delete(people.filter { selection.contains($0.id) })
+                    selection = []
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+                .disabled(selection.isEmpty)
             }
-            .disabled(selection.isEmpty)
-            Button(role: .destructive) {
-                store.delete(people.filter { selection.contains($0.id) })
-                selection = []
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-            .disabled(selection.isEmpty)
+            .secondaryActionStyle()
+            .padding()
         }
-        .padding()
-        .background(.bar)
     }
 
     @ViewBuilder private var emptyState: some View {
@@ -194,7 +196,7 @@ struct SpaceDetailView: View {
                          : "Rule: \(space.ruleSummary)")
                 } actions: {
                     Button("Edit rule") { isEditingRule = true }
-                        .buttonStyle(.borderedProminent)
+                        .primaryActionStyle()
                 }
             } else {
                 ContentUnavailableView("Space deleted", systemImage: "square.dashed")
@@ -230,29 +232,31 @@ struct FilterBar: View {
         let platforms = availablePlatforms
         if !tags.isEmpty || platforms.count > 1 {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    if platforms.count > 1 {
-                        ForEach(platforms, id: \.self) { platform in
-                            platformChip(platform)
-                        }
-                    }
-                    ForEach(tags) { tag in
-                        Button {
-                            if tagFilter.contains(tag.id) {
-                                tagFilter.remove(tag.id)
-                            } else {
-                                tagFilter.insert(tag.id)
+                GlassGroup(spacing: 8) {
+                    HStack(spacing: 8) {
+                        if platforms.count > 1 {
+                            ForEach(platforms, id: \.self) { platform in
+                                platformChip(platform)
                             }
-                        } label: {
-                            TagChip(tag: tag, isSelected: tagFilter.contains(tag.id))
                         }
-                        .buttonStyle(.plain)
+                        ForEach(tags) { tag in
+                            Button {
+                                if tagFilter.contains(tag.id) {
+                                    tagFilter.remove(tag.id)
+                                } else {
+                                    tagFilter.insert(tag.id)
+                                }
+                            } label: {
+                                TagChip(tag: tag, isSelected: tagFilter.contains(tag.id))
+                                    .glassSurface(in: Capsule(), interactive: true)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
             }
-            .background(.bar)
         }
     }
 
@@ -263,10 +267,10 @@ struct FilterBar: View {
         } label: {
             Label(platform.displayName, systemImage: platform.symbol)
                 .font(.subheadline)
-                .foregroundStyle(selected ? Color.white : Color.secondary)
+                .foregroundStyle(selected ? Color.white : Color.primary)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(Capsule().fill(selected ? platform.tint : Color.secondary.opacity(0.08)))
+                .glassSurface(in: Capsule(), tint: selected ? platform.tint : nil, interactive: true)
         }
         .buttonStyle(.plain)
     }
@@ -361,10 +365,10 @@ struct TagSelectionSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    SheetCloseButton { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(confirmTitle) {
+                    SheetConfirmButton(title: confirmTitle) {
                         onConfirm(selection)
                         dismiss()
                     }

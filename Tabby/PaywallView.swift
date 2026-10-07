@@ -60,7 +60,7 @@ struct PaywallView: View {
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .safeAreaInset(edge: .bottom, spacing: 0) { footer }
+            .floatingBottomBar { footer }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
@@ -210,7 +210,7 @@ struct PaywallView: View {
                 .font(.headline)
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
+            .primaryActionStyle()
             .controlSize(.large)
             .disabled(isWorking || purchases.isPurchasing)
             .accessibilityIdentifier("paywall-buy")
@@ -227,7 +227,6 @@ struct PaywallView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
-        .background(.bar)
     }
 
     private func buy() {

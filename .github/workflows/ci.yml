@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -35,10 +35,13 @@ jobs:
             CODE_SIGNING_ALLOWED=NO
 
   ui-tests:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: xcodebuild -version
 
       - name: Generate Xcode project
         run: |
